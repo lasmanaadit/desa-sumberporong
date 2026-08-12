@@ -12,6 +12,7 @@ import Galeri from '../components/Galeri';
 import KritikSaran from '../components/KritikSaran';
 import Footer from '../components/Footer';
 import HeroSlider from '../components/HeroSlider';
+import PerangkatDesaCarousel from '../components/PerangkatDesaCarousel';
 
 function HomePage() {
   return (
@@ -21,6 +22,7 @@ function HomePage() {
       <SambutanKepalaDesa />
       <VisiMisi />
       <StrukturOrganisasi />
+      <PerangkatDesaCarousel /> 
       <AdministrasiPenduduk />
       <PetaDesa />
       <Berita />

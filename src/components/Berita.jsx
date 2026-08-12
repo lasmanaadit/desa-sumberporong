@@ -73,6 +73,14 @@ const Berita = () => {
             </div>
           ))}
         </div>
+                <div className="text-right mt-lg">
+          <a
+            className="bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md py-sm px-md rounded-lg transition-colors inline-block"
+            href="/berita"
+          >
+            Lihat Semua Berita
+          </a>
+        </div>
       </div>
     </section>
   );
