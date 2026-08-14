@@ -82,7 +82,7 @@ const AdminDashboard = () => {
           >
             <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <span className="material-symbols-outlined" style={{ fontSize: '23px' }}>
-                add_news
+                post_add
               </span>
             </div>
             <div>

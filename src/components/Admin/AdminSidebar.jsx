@@ -1,24 +1,43 @@
 // src/components/admin/AdminSidebar.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '/src/assets/logo.webp';
 
 const AdminSidebar = ({ isOpen, setIsOpen }) => {
   const [isPengajuanOpen, setIsPengajuanOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        setUserRole(parsed.role || 'user');
+      } catch {
+        setUserRole('user');
+      }
+    }
+  }, []);
+
+  // Menu utama (semua admin)
   const mainMenu = [
     { name: 'Dashboard', path: '/admin', icon: 'dashboard' },
     { name: 'Hero', path: '/admin/hero', icon: 'image' },
     { name: 'Sambutan', path: '/admin/sambutan', icon: 'speaker' },
-    { name: 'Visi & Misi', path: '/admin/visi-misi', icon: 'visibility' },
+    //{ name: 'Visi & Misi', path: '/admin/visi-misi', icon: 'visibility' },
     { name: 'Struktur Organisasi', path: '/admin/struktur-organisasi', icon: 'account_tree' },
     { name: 'Perangkat Desa', path: '/admin/perangkat-desa', icon: 'group' },
     { name: 'Berita', path: '/admin/berita', icon: 'newspaper' },
     { name: 'Profil Desa', path: '/admin/profil-desa', icon: 'home' },
     { name: 'Statistik', path: '/admin/statistik', icon: 'analytics' },
     { name: 'Galeri', path: '/admin/galeri', icon: 'photo_library' },
+  ];
+
+  // Menu khusus Superadmin
+  const superAdminMenu = [
+    { name: 'Kelola Admin', path: '/admin/manage-admins', icon: 'admin_panel_settings' },
   ];
 
   const pengajuanMenu = [
@@ -82,6 +101,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
         <div className="flex-1 px-4 py-6 overflow-y-auto">
           <p className="font-label-sm text-on-surface-variant mb-3 px-2">KELOLA DESA</p>
           <nav className="space-y-2">
+            {/* Main menu untuk semua admin */}
             {mainMenu.map((item) => (
               <NavLink
                 key={item.path}
@@ -106,6 +126,36 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
                 )}
               </NavLink>
             ))}
+
+            {/* Superadmin only menu */}
+            {userRole === 'superadmin' && (
+              <div className="pt-2">
+                {superAdminMenu.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    end
+                    onClick={closeMenu}
+                    className={linkClass}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            fontSize: '22px',
+                            fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
+                          }}
+                        >
+                          {item.icon}
+                        </span>
+                        <span className="font-label-md">{item.name}</span>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            )}
 
             {/* Pengajuan submenu */}
             <div className="pt-2">

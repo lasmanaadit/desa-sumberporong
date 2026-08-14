@@ -25,7 +25,7 @@ import PengaduanPage from './pages/dashboard/PengaduanPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminHero from './pages/admin/AdminHero';
 import AdminSambutan from './pages/admin/AdminSambutan';
-import AdminVisiMisi from './pages/admin/AdminVisiMisi';
+//import AdminVisiMisi from './pages/admin/AdminVisiMisi';
 import AdminStrukturOrganisasi from './pages/admin/AdminStrukturOrganisasi';
 import AdminPerangkatDesa from './pages/admin/AdminPerangkatDesa';
 import AdminBerita from './pages/admin/AdminBerita';
@@ -37,6 +37,7 @@ import AdminPengajuanSku from './pages/admin/AdminPengajuanSku';
 import AdminPengaduan from './pages/admin/AdminPengaduan';
 import AdminUmkmApproval from './pages/admin/AdminUmkmApproval';
 import AdminLayout from './layouts/AdminLayout';
+import AdminManageAdmins from './pages/admin/AdminManageAdmins';
 
 function App() {
   return (
@@ -64,11 +65,12 @@ function App() {
         <Route path="/umkm/:id" element={<UmkmDetailPage />} />
         <Route path="/dashboard/pengaduan" element={<PengaduanPage />} />
         
+        
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="hero" element={<AdminHero />} />
           <Route path="sambutan" element={<AdminSambutan />} />
-          <Route path="visi-misi" element={<AdminVisiMisi />} />
+          {/*<Route path="visi-misi" element={<AdminVisiMisi />} />*/}
           <Route path="struktur-organisasi" element={<AdminStrukturOrganisasi />} />
           <Route path="perangkat-desa" element={<AdminPerangkatDesa />} />
           <Route path="berita" element={<AdminBerita />} />
@@ -79,6 +81,7 @@ function App() {
           <Route path="umkm" element={<AdminUmkmApproval />} />
           <Route path="pengajuan/sku" element={<AdminPengajuanSku />} />
           <Route path="pengaduan" element={<AdminPengaduan />} />
+          <Route path="manage-admins" element={<AdminManageAdmins />} />
         </Route>
       </Routes>
     </BrowserRouter>
