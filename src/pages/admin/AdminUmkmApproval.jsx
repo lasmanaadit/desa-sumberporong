@@ -59,7 +59,7 @@ const AdminUmkmApproval = () => {
       <h1 className="font-headline-lg text-on-background mb-2">UMKM Approval</h1>
       <p className="font-body-md text-on-surface-variant mb-6">Setujui atau tolak pengajuan UMKM.</p>
 
-      <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden">
+      <div className="overflow-x-auto w-full">
         <table className="w-full">
           <thead className="bg-surface-container-low border-b border-outline-variant/20">
             <tr>

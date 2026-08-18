@@ -154,7 +154,7 @@ const AdminManageAdmins = () => {
       )}
 
       {/* Tabel User */}
-      <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden">
+      <div className="overflow-x-auto w-full">
         <table className="w-full">
           <thead className="bg-surface-container-low border-b border-outline-variant/20">
             <tr>

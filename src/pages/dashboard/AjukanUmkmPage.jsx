@@ -1,10 +1,10 @@
-// src/pages/dashboard/AjukanUmkm.jsx
+// src/pages/dashboard/AjukanUmkmPage.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/dashboard/Sidebar';
 import Topbar from '../../components/dashboard/Topbar';
 
-const AjukanUmkm = () => {
+const AjukanUmkmPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -22,38 +22,48 @@ const AjukanUmkm = () => {
     ecommerce: '',
   });
 
-  const [fotoFiles, setFotoFiles] = useState([]);
-  const [fotoPreviews, setFotoPreviews] = useState([]);
+  // 5 slot foto
+  const [fotoSlots, setFotoSlots] = useState(
+    Array.from({ length: 5 }, () => ({ file: null, preview: null }))
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFotoChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length + fotoPreviews.length > 5) {
-      alert('Maksimal 5 foto');
-      return;
-    }
-    setFotoFiles((prev) => [...prev, ...files]);
-    const previews = files.map((file) => URL.createObjectURL(file));
-    setFotoPreviews((prev) => [...prev, ...previews]);
+  const handleSlotUpload = (index, file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFotoSlots((prev) => {
+        const newSlots = [...prev];
+        newSlots[index] = { file, preview: reader.result };
+        return newSlots;
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
-  const removeFoto = (index) => {
-    setFotoFiles((prev) => prev.filter((_, i) => i !== index));
-    setFotoPreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeSlot = (index) => {
+    setFotoSlots((prev) => {
+      const newSlots = [...prev];
+      newSlots[index] = { file: null, preview: null };
+      return newSlots;
+    });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (fotoFiles.length === 0) {
+    const uploadedFiles = fotoSlots
+      .filter(slot => slot.file !== null)
+      .map(slot => slot.file);
+    if (uploadedFiles.length === 0) {
       alert('Upload minimal 1 foto produk');
       return;
     }
     console.log('Data UMKM:', form);
-    console.log('Foto:', fotoFiles);
+    console.log('Foto:', uploadedFiles);
     alert('UMKM berhasil diajukan!');
     navigate('/dashboard/umkm');
   };
@@ -62,11 +72,14 @@ const AjukanUmkm = () => {
     <div className="min-h-screen bg-background">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div className="lg:ml-72 min-h-screen">
-        <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
+        <Topbar setIsOpen={setIsSidebarOpen} />
         <main className="p-4 sm:p-6 lg:p-8">
           <div className="max-w-4xl mx-auto">
             <div className="mb-8">
-              <Link to="/dashboard/umkm" className="inline-flex items-center gap-2 text-primary font-label-md hover:underline mb-5">
+              <Link
+                to="/dashboard/umkm"
+                className="inline-flex items-center gap-2 text-primary font-label-md hover:underline mb-5"
+              >
                 <span className="material-symbols-outlined">arrow_back</span>
                 Kembali ke UMKM Saya
               </Link>
@@ -77,7 +90,6 @@ const AjukanUmkm = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-6 sm:p-8 space-y-6">
-              {/* Field form (sama seperti sebelumnya) */}
               <div>
                 <label className="block font-label-md font-semibold mb-2">Nama UMKM</label>
                 <input type="text" name="nama" value={form.nama} onChange={handleChange} placeholder="Contoh: Warung Makan Sumber Rejeki" required className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 bg-surface outline-none focus:border-primary focus:ring-2 focus:ring-primary/10" />
@@ -144,27 +156,71 @@ const AjukanUmkm = () => {
                 <input type="url" name="ecommerce" value={form.ecommerce} onChange={handleChange} placeholder="https://tokopedia.com/..." className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 bg-surface outline-none focus:border-primary" />
               </div>
 
-              {/* Upload Foto (max 5) dengan preview grid */}
+              {/* --- BAGIAN FOTO PRODUK DENGAN 5 SLOT --- */}
               <div>
-                <label className="block font-label-md font-semibold mb-2">Foto Produk <span className="font-normal text-on-surface-variant">(Maksimal 5)</span></label>
-                <input type="file" accept="image/png,image/jpeg" multiple onChange={handleFotoChange} className="w-full p-3 rounded-xl border border-outline-variant/50 bg-surface" />
-                {fotoPreviews.length > 0 && (
-                  <div className="flex flex-wrap gap-3 mt-3">
-                    {fotoPreviews.map((src, idx) => (
-                      <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border border-outline-variant/30">
-                        <img src={src} alt={`Foto ${idx+1}`} className="w-full h-full object-cover" />
-                        <button type="button" onClick={() => removeFoto(idx)} className="absolute -top-1 -right-1 w-5 h-5 bg-error text-white rounded-full flex items-center justify-center text-xs hover:bg-error/80 transition-colors">
-                          <span className="material-symbols-outlined text-sm">close</span>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <p className="text-xs text-on-surface-variant mt-2">Upload minimal 1 foto produk (JPG/PNG).</p>
+                <label className="block font-label-md font-semibold mb-2">
+                  Foto Produk
+                  <span className="font-normal text-on-surface-variant">
+                    {' '}
+                    (Maksimal 5)
+                  </span>
+                </label>
+
+                <div className="grid grid-cols-5 gap-3">
+                  {fotoSlots.map((slot, index) => (
+                    <div
+                      key={index}
+                      className="relative aspect-square rounded-lg border-2 border-dashed border-outline-variant/40 hover:border-primary/50 transition-colors flex items-center justify-center overflow-hidden bg-surface/20"
+                    >
+                      {slot.preview ? (
+                        <>
+                          <img
+                            src={slot.preview}
+                            alt={`Foto ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeSlot(index)}
+                            className="absolute top-1 right-1 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center text-xs hover:bg-error/80 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </>
+                      ) : (
+                        <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-colors">
+                          <span className="material-symbols-outlined text-on-surface-variant/50 text-3xl">
+                            add_photo_alternate
+                          </span>
+                          <span className="text-xs text-on-surface-variant/50 mt-1">
+                            Tambah
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files[0];
+                              if (file) handleSlotUpload(index, file);
+                              e.target.value = ''; // reset agar bisa pilih file yang sama lagi
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-xs text-on-surface-variant mt-2">
+                  Upload minimal 1 foto produk (JPG/PNG). Klik kotak kosong untuk menambah foto.
+                </p>
               </div>
 
+              {/* --- BUTTON --- */}
               <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-outline-variant/20">
-                <Link to="/dashboard/umkm" className="flex-1 flex items-center justify-center px-5 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors">Batal</Link>
+                <Link to="/dashboard/umkm" className="flex-1 flex items-center justify-center px-5 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors">
+                  Batal
+                </Link>
                 <button type="submit" className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary-container transition-colors">
                   <span className="material-symbols-outlined">send</span>
                   Ajukan UMKM
@@ -178,4 +234,4 @@ const AjukanUmkm = () => {
   );
 };
 
-export default AjukanUmkm;
+export default AjukanUmkmPage;

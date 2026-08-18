@@ -38,6 +38,8 @@ import AdminPengaduan from './pages/admin/AdminPengaduan';
 import AdminUmkmApproval from './pages/admin/AdminUmkmApproval';
 import AdminLayout from './layouts/AdminLayout';
 import AdminManageAdmins from './pages/admin/AdminManageAdmins';
+import AdminKritikSaran from './pages/admin/AdminKritikSaran';
+import BeritaDetailPage from './pages/BeritaDetailPage';
 
 function App() {
   return (
@@ -64,6 +66,7 @@ function App() {
         <Route path="/dashboard/umkm/edit/:id" element={<EditUmkmPage />} />
         <Route path="/umkm/:id" element={<UmkmDetailPage />} />
         <Route path="/dashboard/pengaduan" element={<PengaduanPage />} />
+        <Route path="/berita/:id" element={<BeritaDetailPage />} />
         
         
         <Route path="/admin" element={<AdminLayout />}>
@@ -82,6 +85,8 @@ function App() {
           <Route path="pengajuan/sku" element={<AdminPengajuanSku />} />
           <Route path="pengaduan" element={<AdminPengaduan />} />
           <Route path="manage-admins" element={<AdminManageAdmins />} />
+          <Route path="kritik-saran" element={<AdminKritikSaran />} />
+          
         </Route>
       </Routes>
     </BrowserRouter>

@@ -17,41 +17,71 @@ const KtpPage = () => {
     namaLengkap: '',
     nomorKK: '',
     nik: '',
+    tempatLahir: '',
+    tanggalLahir: '', // format dd/mm/yyyy
+    jenisKelamin: '', // 'Laki-laki' atau 'Perempuan'
     alamat: '',
     rt: '',
     rw: '',
     kodePos: '',
+    usia17: false, // checkbox
   });
 
   // State untuk file upload (dynamic)
   const [files, setFiles] = useState({});
 
+  // State untuk toggle tampilan NIK
+  const [showNik, setShowNik] = useState(false);
+
   // Syarat dokumen berdasarkan jenis permohonan
   const syaratDokumen = {
     baru: [
-      { id: 'kk', label: 'Fotokopi Kartu Keluarga (KK)' },
-      { id: 'akte', label: 'Fotokopi Akta Kelahiran atau Ijazah (jika ada)' },
-      { id: 'usia', label: 'Telah berusia minimal 17 tahun (pernyataan)' },
+      { id: 'kk', label: 'Kartu Keluarga (KK)' },
+      { id: 'akte', label: 'Akta Kelahiran' },
     ],
     perpanjangan: [
-      { id: 'ktpLama', label: 'Fotokopi KTP-el pemohon' },
-      { id: 'kk', label: 'Fotokopi Kartu Keluarga (KK)' },
+      { id: 'ktpLama', label: 'KTP-el pemohon' },
+      { id: 'kk', label: 'Kartu Keluarga (KK)' },
       { id: 'pengantarRt', label: 'Surat pengantar asli dari ketua RT dan RW setempat' },
     ],
     hilang: [
-      { id: 'kk', label: 'Fotokopi Kartu Keluarga (KK)' },
+      { id: 'kk', label: 'Kartu Keluarga (KK)' },
       { id: 'suratKehilangan', label: 'Surat Keterangan Kehilangan dari kantor kepolisian (Polsek terdekat)' },
       { id: 'pengantarRtRw', label: 'Pengantar dari RT/RW setempat' },
     ],
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    // Reset file upload jika jenis permohonan berubah
-    if (name === 'jenisPermohonan') {
-      setFiles({});
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      setForm((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+      // Reset file upload jika jenis permohonan berubah
+      if (name === 'jenisPermohonan') {
+        setFiles({});
+      }
     }
+  };
+
+  // Untuk tanggal lahir format dd/mm/yyyy – hanya angka dan slash
+  const handleTanggalLahirChange = (e) => {
+    let value = e.target.value;
+    // Hanya izinkan digit dan slash
+    value = value.replace(/[^0-9/]/g, '');
+    // Batasi panjang maksimal 10 karakter (dd/mm/yyyy)
+    if (value.length > 10) return;
+    // Tambahkan slash otomatis
+    if (value.length === 2 && !value.includes('/')) {
+      value = value + '/';
+    } else if (value.length === 5 && value.split('/').length === 2) {
+      // Setelah dd/mm, tambahkan slash
+      const parts = value.split('/');
+      if (parts[1].length === 2) {
+        value = value + '/';
+      }
+    }
+    setForm((prev) => ({ ...prev, tanggalLahir: value }));
   };
 
   const handleFileChange = (e, docId) => {
@@ -61,11 +91,39 @@ const KtpPage = () => {
     }
   };
 
+  // Fungsi menghitung umur dari tanggal lahir (dd/mm/yyyy)
+  const hitungUmur = (tanggalLahir) => {
+    if (!tanggalLahir || tanggalLahir.length < 10) return null;
+    const parts = tanggalLahir.split('/');
+    if (parts.length !== 3) return null;
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // bulan dimulai 0
+    const year = parseInt(parts[2], 10);
+    const birthDate = new Date(year, month, day);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // Validasi jenis permohonan
     if (!form.jenisPermohonan) {
       alert('Pilih jenis permohonan terlebih dahulu.');
+      return;
+    }
+    // Cek usia
+    const umur = hitungUmur(form.tanggalLahir);
+    if (umur === null) {
+      alert('Format tanggal lahir tidak valid. Gunakan dd/mm/yyyy.');
+      return;
+    }
+    if (umur < 17) {
+      alert('Anda belum berusia 17 tahun, tidak dapat mengajukan KTP.');
       return;
     }
     // Cek apakah semua dokumen sudah diupload
@@ -209,6 +267,8 @@ const KtpPage = () => {
                         required
                       />
                     </div>
+
+                    {/* Nomor KK & NIK dengan toggle */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
                         <label className="font-label-md text-on-surface block mb-2">Nomor Kartu Keluarga</label>
@@ -225,18 +285,75 @@ const KtpPage = () => {
                       </div>
                       <div>
                         <label className="font-label-md text-on-surface block mb-2">NIK</label>
+                        <div className="relative">
+                          <input
+                            type={showNik ? 'text' : 'password'}
+                            name="nik"
+                            value={form.nik}
+                            onChange={handleChange}
+                            placeholder="Masukkan NIK"
+                            maxLength="16"
+                            className="w-full h-12 px-4 pr-10 rounded-xl bg-surface border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNik(!showNik)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+                          >
+                            <span className="material-symbols-outlined">
+                              {showNik ? 'visibility' : 'visibility_off'}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tempat Lahir & Tanggal Lahir */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="font-label-md text-on-surface block mb-2">Tempat Lahir</label>
                         <input
                           type="text"
-                          name="nik"
-                          value={form.nik}
+                          name="tempatLahir"
+                          value={form.tempatLahir}
                           onChange={handleChange}
-                          placeholder="Masukkan NIK"
-                          maxLength="16"
+                          placeholder="Contoh: Malang"
+                          className="w-full h-12 px-4 rounded-xl bg-surface border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="font-label-md text-on-surface block mb-2">Tanggal Lahir (dd/mm/yyyy)</label>
+                        <input
+                          type="text"
+                          name="tanggalLahir"
+                          value={form.tanggalLahir}
+                          onChange={handleTanggalLahirChange}
+                          placeholder="dd/mm/yyyy"
                           className="w-full h-12 px-4 rounded-xl bg-surface border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
                           required
                         />
                       </div>
                     </div>
+
+                    {/* Jenis Kelamin */}
+                    <div>
+                      <label className="font-label-md text-on-surface block mb-2">Jenis Kelamin</label>
+                      <select
+                        name="jenisKelamin"
+                        value={form.jenisKelamin}
+                        onChange={handleChange}
+                        className="w-full h-12 px-4 rounded-xl bg-surface border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none"
+                        required
+                      >
+                        <option value="">Pilih jenis kelamin</option>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                      </select>
+                    </div>
+
+                    {/* Alamat */}
                     <div>
                       <label className="font-label-md text-on-surface block mb-2">Alamat</label>
                       <textarea
@@ -249,6 +366,8 @@ const KtpPage = () => {
                         required
                       />
                     </div>
+
+                    {/* RT, RW, Kode Pos */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                       <div>
                         <label className="font-label-md text-on-surface block mb-2">RT</label>

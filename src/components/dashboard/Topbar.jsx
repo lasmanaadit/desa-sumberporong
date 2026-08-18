@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const Topbar = ({ setIsOpen }) => {
+  console.log('[Topbar] setIsOpen received:', setIsOpen); // Debugging
+
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -16,7 +18,6 @@ const Topbar = ({ setIsOpen }) => {
     }
   }, []);
 
-  // Ambil inisial nama untuk avatar
   const getInitials = (name) => {
     if (!name) return '?';
     const parts = name.split(' ');
@@ -26,12 +27,16 @@ const Topbar = ({ setIsOpen }) => {
     return name.substring(0, 2).toUpperCase();
   };
 
+  const handleBurgerClick = () => {
+    setIsOpen(true);
+  };
+
   return (
     <header className="h-20 bg-surface-container-lowest border-b border-outline-variant/20 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-30">
       
-      {/* ================= MOBILE MENU ================= */}
+      {/* Mobile menu button dengan pengamanan */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={handleBurgerClick}
         className="lg:hidden w-10 h-10 rounded-xl hover:bg-primary/10 flex items-center justify-center text-on-surface-variant"
       >
         <span
@@ -42,14 +47,13 @@ const Topbar = ({ setIsOpen }) => {
         </span>
       </button>
 
-      {/* ================= SPACER DESKTOP ================= */}
       <div className="hidden lg:block">
         <p className="font-body-md text-on-surface-variant">
           Dashboard Pengguna
         </p>
       </div>
 
-      {/* ================= USER PROFILE ================= */}
+      {/* User profile */}
       <motion.div
         initial={{ opacity: 0, x: 15 }}
         animate={{ opacity: 1, x: 0 }}

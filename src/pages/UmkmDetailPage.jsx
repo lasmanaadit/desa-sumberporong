@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { dummyUmkmList } from '../data/umkmDummy';
+import { FaStore, FaTiktok, FaWhatsapp } from 'react-icons/fa';
 
 const UmkmDetailPage = () => {
   const { id } = useParams();
@@ -112,13 +113,13 @@ const UmkmDetailPage = () => {
               <div className="flex flex-wrap gap-3 pt-4 border-t border-outline-variant/20">
                 {umkm.whatsapp && (
                   <a href={`https://wa.me/${umkm.whatsapp}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors">
-                    <span className="material-symbols-outlined">whatsapp</span>
+                    <FaWhatsapp className="text-lg" />
                     WhatsApp
                   </a>
                 )}
                 {umkm.ecommerce && (
                   <a href={umkm.ecommerce} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors">
-                    <span className="material-symbols-outlined">shopping_bag</span>
+                    <FaStore className="text-lg" />
                     E-Commerce
                   </a>
                 )}

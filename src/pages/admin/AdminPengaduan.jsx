@@ -88,7 +88,7 @@ const AdminPengaduan = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden">
+      <div className="overflow-x-auto w-full">
         <table className="w-full">
           <thead className="bg-surface-container-low border-b border-outline-variant/20">
             <tr>
@@ -194,7 +194,7 @@ const AdminPengaduan = () => {
       {/* Lightbox Modal untuk Preview Gambar Bukti */}
       {imagePreviewUrl && (
         <div
-          className="fixed inset-0 z-[999] bg-black/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-999 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setImagePreviewUrl(null)}
         >
           <div className="relative max-w-4xl max-h-[90vh]">

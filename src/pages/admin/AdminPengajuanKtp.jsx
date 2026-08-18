@@ -2,34 +2,111 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
+// Dummy data KTP dengan field baru
 const dummyKtp = [
-  { id: 1, jenis: 'Baru', nama: 'Andi Saputra', nik: '1234567890123456', kk: '1234567890123456', alamat: 'Jl. Merdeka No. 10', rt: '001', rw: '002', kodePos: '65176', dokumen: { kk: 'kk_andia.pdf', akte: 'akte_andia.pdf', usia: 'pernyataan.pdf' }, status: 'Diproses', tanggal: '2026-08-12' },
-  { id: 2, jenis: 'Perpanjangan', nama: 'Budi Santoso', nik: '1234567890123457', kk: '1234567890123457', alamat: 'Jl. Kenangan No. 5', rt: '003', rw: '001', kodePos: '65176', dokumen: { ktpLama: 'ktp_budi.pdf', kk: 'kk_budi.pdf', pengantarRt: 'pengantar_budi.pdf' }, status: 'Disetujui', tanggal: '2026-08-10' },
-  { id: 3, jenis: 'Hilang', nama: 'Siti Rahma', nik: '1234567890123458', kk: '1234567890123458', alamat: 'Jl. Pasar No. 2', rt: '002', rw: '003', kodePos: '65176', dokumen: { kk: 'kk_siti.pdf', suratKehilangan: 'kehilangan_siti.pdf', pengantarRtRw: 'pengantar_siti.pdf' }, status: 'Menunggu', tanggal: '2026-08-08' },
-  { id: 4, jenis: 'Baru', nama: 'Joko Widodo', nik: '1234567890123459', kk: '1234567890123459', alamat: 'Jl. Gotong Royong No. 1', rt: '004', rw: '004', kodePos: '65176', dokumen: { kk: 'kk_joko.pdf', akte: 'akte_joko.pdf', usia: 'pernyataan_joko.pdf' }, status: 'Ditolak', tanggal: '2026-08-05' },
-  // tambahkan lebih banyak untuk pagination
+  {
+    id: 1,
+    jenisPermohonan: 'baru',
+    namaLengkap: 'Andi Saputra',
+    nik: '1234567890123456',
+    nomorKK: '1234567890123456',
+    tempatLahir: 'Malang',
+    tanggalLahir: '12/08/2000',
+    jenisKelamin: 'Laki-laki',
+    alamat: 'Jl. Merdeka No. 10, Sumberporong',
+    rt: '001',
+    rw: '002',
+    kodePos: '65176',
+    dokumen: { kk: 'kk_andi.pdf', akte: 'akte_andi.pdf' },
+    status: 'Diproses',
+    tanggal: '2026-08-12',
+  },
+  {
+    id: 2,
+    jenisPermohonan: 'perpanjangan',
+    namaLengkap: 'Budi Santoso',
+    nik: '1234567890123457',
+    nomorKK: '1234567890123457',
+    tempatLahir: 'Surabaya',
+    tanggalLahir: '05/11/1995',
+    jenisKelamin: 'Laki-laki',
+    alamat: 'Jl. Kenangan No. 5',
+    rt: '003',
+    rw: '001',
+    kodePos: '65176',
+    dokumen: { ktpLama: 'ktp_budi.pdf', kk: 'kk_budi.pdf', pengantarRt: 'pengantar_budi.pdf' },
+    status: 'Diproses',
+    tanggal: '2026-08-10',
+  },
+  {
+    id: 3,
+    jenisPermohonan: 'hilang',
+    namaLengkap: 'Siti Rahma',
+    nik: '1234567890123458',
+    nomorKK: '1234567890123458',
+    tempatLahir: 'Jakarta',
+    tanggalLahir: '20/03/1998',
+    jenisKelamin: 'Perempuan',
+    alamat: 'Jl. Pasar No. 2',
+    rt: '002',
+    rw: '003',
+    kodePos: '65176',
+    dokumen: { kk: 'kk_siti.pdf', suratKehilangan: 'kehilangan_siti.pdf', pengantarRtRw: 'pengantar_siti.pdf' },
+    status: 'Disetujui',
+    tanggal: '2026-08-08',
+  },
+  {
+    id: 4,
+    jenisPermohonan: 'baru',
+    namaLengkap: 'Joko Widodo',
+    nik: '1234567890123459',
+    nomorKK: '1234567890123459',
+    tempatLahir: 'Yogyakarta',
+    tanggalLahir: '10/01/2005',
+    jenisKelamin: 'Laki-laki',
+    alamat: 'Jl. Gotong Royong No. 1',
+    rt: '004',
+    rw: '004',
+    kodePos: '65176',
+    dokumen: { kk: 'kk_joko.pdf', akte: 'akte_joko.pdf' },
+    status: 'Ditolak',
+    tanggal: '2026-08-05',
+  },
 ];
 
 const AdminPengajuanKtp = () => {
+  const [ktpList, setKtpList] = useState(dummyKtp);
   const [selected, setSelected] = useState(null);
-  const [activeTab, setActiveTab] = useState('Diproses'); // 'Diproses' or 'Selesai'
+  const [activeTab, setActiveTab] = useState('Diproses');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   // Filter data berdasarkan tab
-  const filteredData = dummyKtp.filter(item => {
-    if (activeTab === 'Diproses') return item.status === 'Diproses' || item.status === 'Menunggu';
+  const filteredData = ktpList.filter(item => {
+    if (activeTab === 'Diproses') return item.status === 'Diproses';
     return item.status === 'Disetujui' || item.status === 'Ditolak';
   });
 
-  // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   // Handle approve/decline
-  const handleApprove = (id) => { /* API call */ alert('Pengajuan disetujui'); };
-  const handleDecline = (id) => { /* API call */ alert('Pengajuan ditolak'); };
+  const handleApprove = (id) => {
+    setKtpList(prev => prev.map(item => item.id === id ? { ...item, status: 'Disetujui' } : item));
+    setSelected(null);
+  };
+
+  const handleDecline = (id) => {
+    setKtpList(prev => prev.map(item => item.id === id ? { ...item, status: 'Ditolak' } : item));
+    setSelected(null);
+  };
+
+  // Helper untuk label jenis permohonan
+  const getJenisLabel = (jenis) => {
+    const map = { baru: 'Baru', perpanjangan: 'Perpanjangan', hilang: 'Hilang' };
+    return map[jenis] || jenis;
+  };
 
   return (
     <div>
@@ -54,7 +131,7 @@ const AdminPengajuanKtp = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden">
+      <div className="overflow-x-auto w-full">
         <table className="w-full">
           <thead className="bg-surface-container-low border-b border-outline-variant/20">
             <tr>
@@ -70,8 +147,8 @@ const AdminPengajuanKtp = () => {
             {currentItems.map((item) => (
               <tr key={item.id} className="border-b border-outline-variant/10 hover:bg-primary/5 transition-colors">
                 <td className="px-6 py-4 font-label-md font-semibold text-primary">#{item.id}</td>
-                <td className="px-6 py-4 font-label-md">{item.nama}</td>
-                <td className="px-6 py-4 font-label-sm">{item.jenis}</td>
+                <td className="px-6 py-4 font-label-md">{item.namaLengkap}</td>
+                <td className="px-6 py-4 font-label-sm">{getJenisLabel(item.jenisPermohonan)}</td>
                 <td className="px-6 py-4 font-label-sm">{item.tanggal}</td>
                 <td className="px-6 py-4">
                   <span className={`px-3 py-1.5 rounded-full font-label-sm ${
@@ -100,33 +177,15 @@ const AdminPengajuanKtp = () => {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-4">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(p => p - 1)}
-            className="px-4 py-2 rounded-lg border border-outline-variant/30 hover:bg-primary/10 disabled:opacity-40"
-          >
-            Prev
-          </button>
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-4 py-2 rounded-lg border border-outline-variant/30 hover:bg-primary/10 disabled:opacity-40">Prev</button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-            <button
-              key={p}
-              onClick={() => setCurrentPage(p)}
-              className={`px-4 py-2 rounded-lg ${currentPage === p ? 'bg-primary text-white' : 'border border-outline-variant/30 hover:bg-primary/10'}`}
-            >
-              {p}
-            </button>
+            <button key={p} onClick={() => setCurrentPage(p)} className={`px-4 py-2 rounded-lg ${currentPage === p ? 'bg-primary text-white' : 'border border-outline-variant/30 hover:bg-primary/10'}`}>{p}</button>
           ))}
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(p => p + 1)}
-            className="px-4 py-2 rounded-lg border border-outline-variant/30 hover:bg-primary/10 disabled:opacity-40"
-          >
-            Next
-          </button>
+          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="px-4 py-2 rounded-lg border border-outline-variant/30 hover:bg-primary/10 disabled:opacity-40">Next</button>
         </div>
       )}
 
-      {/* Preview Modal (sama seperti sebelumnya, disesuaikan field) */}
+      {/* Preview Modal */}
       {selected && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelected(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-surface-container-lowest rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -141,29 +200,32 @@ const AdminPengajuanKtp = () => {
                 <div>
                   <h3 className="font-label-md font-semibold text-primary mb-3">Data Pemohon</h3>
                   <dl className="space-y-2">
-                    <div><dt className="font-label-sm text-on-surface-variant">Nama</dt><dd className="font-label-md">{selected.nama}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">Nama Lengkap</dt><dd className="font-label-md">{selected.namaLengkap}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">NIK</dt><dd className="font-label-md">{selected.nik}</dd></div>
-                    <div><dt className="font-label-sm text-on-surface-variant">No KK</dt><dd className="font-label-md">{selected.kk}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">No KK</dt><dd className="font-label-md">{selected.nomorKK}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">Tempat Lahir</dt><dd className="font-label-md">{selected.tempatLahir}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">Tanggal Lahir</dt><dd className="font-label-md">{selected.tanggalLahir}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">Jenis Kelamin</dt><dd className="font-label-md">{selected.jenisKelamin}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">Alamat</dt><dd className="font-label-md">{selected.alamat}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">RT / RW</dt><dd className="font-label-md">{selected.rt} / {selected.rw}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">Kode Pos</dt><dd className="font-label-md">{selected.kodePos}</dd></div>
                   </dl>
                 </div>
                 <div>
-                <h3 className="font-label-md font-semibold text-primary mb-3">Dokumen</h3>
-                    <ul className="space-y-2">
-                        {Object.entries(selected.dokumen).map(([key, value]) => (
-                        <li key={key} className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-primary">description</span>
-                            <button
-                            onClick={() => window.open(`https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`, '_blank')}
-                            className="text-primary underline font-label-md hover:text-primary-container transition-colors"
-                            >
-                            {value}
-                            </button>
-                        </li>
-                        ))}
-                    </ul>
+                  <h3 className="font-label-md font-semibold text-primary mb-3">Dokumen</h3>
+                  <ul className="space-y-2">
+                    {Object.entries(selected.dokumen).map(([key, value]) => (
+                      <li key={key} className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">description</span>
+                        <button
+                          onClick={() => window.open(`https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`, '_blank')}
+                          className="text-primary underline font-label-md hover:text-primary-container transition-colors"
+                        >
+                          {value}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>

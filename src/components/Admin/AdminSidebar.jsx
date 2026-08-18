@@ -33,6 +33,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Profil Desa', path: '/admin/profil-desa', icon: 'home' },
     { name: 'Statistik', path: '/admin/statistik', icon: 'analytics' },
     { name: 'Galeri', path: '/admin/galeri', icon: 'photo_library' },
+    { name: 'Kritik & Saran', path: '/admin/kritik-saran', icon: 'feedback' },
   ];
 
   // Menu khusus Superadmin

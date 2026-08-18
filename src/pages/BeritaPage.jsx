@@ -93,159 +93,104 @@ const beritaData = [
 ];
 
 const BeritaPage = () => {
-  // Halaman aktif
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Jumlah berita per halaman
   const beritaPerPage = 8;
 
-  // Hitung index berita
   const indexBeritaTerakhir = currentPage * beritaPerPage;
   const indexBeritaPertama = indexBeritaTerakhir - beritaPerPage;
-
-  // Ambil berita sesuai halaman
-  const beritaSekarang = beritaData.slice(
-    indexBeritaPertama,
-    indexBeritaTerakhir
-  );
-
-  // Hitung jumlah halaman
-  const totalPages = Math.ceil(
-    beritaData.length / beritaPerPage
-  );
+  const beritaSekarang = beritaData.slice(indexBeritaPertama, indexBeritaTerakhir);
+  const totalPages = Math.ceil(beritaData.length / beritaPerPage);
 
   return (
     <div className="bg-background text-on-surface font-body-md antialiased pt-18">
       <Navbar />
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-6">
-
-            {/* Header */}
-            <div className="mb-10">
-              <h1 className="font-headline-md text-3xl font-bold text-primary">
-                Berita Terkini
-              </h1>
-
-              <p className="mt-2 text-on-surface-variant">
-                Informasi dan kegiatan terbaru Desa Sumberporong
-              </p>
-            </div>
-
-            {/* GRID BERITA */}
-            <div className="grid grid-cols-4 gap-6">
-
-              {beritaSekarang.map((berita) => (
-                <article
-                  key={berita.id}
-                  className="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/20 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
-                >
-
-                  {/* Gambar */}
-                  <div className="aspect-16/10 overflow-hidden">
-                    <img
-                      src={berita.gambar}
-                      alt={berita.judul}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Isi */}
-                  <div className="p-5">
-
-                    {/* Tanggal */}
-                    <div className="flex items-center gap-2 text-sm text-on-surface-variant mb-3">
-                      <span className="material-symbols-outlined text-base">
-                        calendar_today
-                      </span>
-
-                      <span>
-                        {berita.tanggal}
-                      </span>
-                    </div>
-
-                    {/* Judul */}
-                    <h2 className="font-headline-md text-lg font-bold text-primary line-clamp-2 mb-3">
-                      {berita.judul}
-                    </h2>
-
-                    {/* Deskripsi */}
-                    <p className="text-sm text-on-surface-variant line-clamp-3 mb-5">
-                      {berita.deskripsi}
-                    </p>
-
-                    {/* Baca */}
-                    <button className="flex items-center gap-2 text-sm font-semibold text-primary hover:gap-3 transition-all">
-                      Baca Selengkapnya
-
-                      <span className="material-symbols-outlined text-base">
-                        arrow_forward
-                      </span>
-                    </button>
-
-                  </div>
-                </article>
-              ))}
-
-            </div>
-
-            {/* PAGINATION */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-12">
-
-                {/* Previous */}
-                <button
-                  onClick={() =>
-                    setCurrentPage((page) => Math.max(page - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 text-primary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/10 transition"
-                >
-                  <span className="material-symbols-outlined">
-                    chevron_left
-                  </span>
-                </button>
-
-                {/* Nomor halaman */}
-                {Array.from(
-                  { length: totalPages },
-                  (_, index) => index + 1
-                ).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-10 h-10 rounded-lg font-semibold transition ${
-                      currentPage === page
-                        ? 'bg-primary text-white'
-                        : 'border border-outline-variant/30 text-primary hover:bg-primary/10'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-
-                {/* Next */}
-                <button
-                  onClick={() =>
-                    setCurrentPage((page) =>
-                      Math.min(page + 1, totalPages)
-                    )
-                  }
-                  disabled={currentPage === totalPages}
-                  className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 text-primary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/10 transition"
-                >
-                  <span className="material-symbols-outlined">
-                    chevron_right
-                  </span>
-                </button>
-
-              </div>
-              
-            )}
-
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="mb-10">
+            <h1 className="font-headline-md text-3xl font-bold text-primary">
+              Berita Terkini
+            </h1>
+            <p className="mt-2 text-on-surface-variant">
+              Informasi dan kegiatan terbaru Desa Sumberporong
+            </p>
           </div>
-          
-        </section>
-      <Footer/>
+
+          {/* Grid responsif */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {beritaSekarang.map((berita) => (
+              <article
+                key={berita.id}
+                className="bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/20 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full"
+              >
+                <div className="aspect-16/10 overflow-hidden">
+                  <img
+                    src={berita.gambar}
+                    alt={berita.judul}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-5 flex flex-col flex-1">
+                  <div className="flex items-center gap-2 text-sm text-on-surface-variant mb-3">
+                    <span className="material-symbols-outlined text-base">
+                      calendar_today
+                    </span>
+                    <span>{berita.tanggal}</span>
+                  </div>
+                  <h2 className="font-headline-md text-lg font-bold text-primary line-clamp-2 mb-3">
+                    {berita.judul}
+                  </h2>
+                  <p className="text-sm text-on-surface-variant line-clamp-3 mb-5 flex-1">
+                    {berita.deskripsi}
+                  </p>
+                  <a
+                    href={`/berita/${berita.id}`}
+                    className="flex items-center gap-2 text-sm font-semibold text-primary hover:gap-3 transition-all mt-auto"
+                  >
+                    Baca Selengkapnya
+                    <span className="material-symbols-outlined text-base">
+                      arrow_forward
+                    </span>
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-12">
+              <button
+                onClick={() => setCurrentPage((page) => Math.max(page - 1, 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 text-primary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/10 transition"
+              >
+                <span className="material-symbols-outlined">chevron_left</span>
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-10 h-10 rounded-lg font-semibold transition ${
+                    currentPage === page
+                      ? 'bg-primary text-white'
+                      : 'border border-outline-variant/30 text-primary hover:bg-primary/10'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 text-primary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/10 transition"
+              >
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+      <Footer />
     </div>
   );
 };

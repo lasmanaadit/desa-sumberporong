@@ -1,6 +1,8 @@
 // src/pages/admin/AdminBerita.jsx
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { FaTwitter, FaFacebook, FaInstagram, FaTiktok, FaWhatsapp, FaLink } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const AdminBerita = () => {
   const [beritaList, setBeritaList] = useState([]);
@@ -8,6 +10,9 @@ const AdminBerita = () => {
   const [currentId, setCurrentId] = useState(null);
   const [form, setForm] = useState({ judul: '', deskripsi: '', gambar: null });
   const [gambarPreview, setGambarPreview] = useState(null);
+  const [previewBerita, setPreviewBerita] = useState(null); // untuk modal preview
+
+  const navigate = useNavigate();
 
   const handleAdd = () => {
     setIsEditing(true);
@@ -52,6 +57,21 @@ const AdminBerita = () => {
     setCurrentId(null);
     setForm({ judul: '', deskripsi: '', gambar: null });
     setGambarPreview(null);
+  };
+
+  // Fungsi preview
+  const handlePreview = (berita) => {
+    setPreviewBerita(berita);
+  };
+
+  const closePreview = () => {
+    setPreviewBerita(null);
+  };
+
+  // Fungsi copy link (untuk modal preview)
+  const copyLink = (url) => {
+    navigator.clipboard.writeText(url);
+    alert('Link berita berhasil disalin!');
   };
 
   return (
@@ -112,6 +132,7 @@ const AdminBerita = () => {
         </motion.div>
       )}
 
+      {/* Tabel Berita */}
       <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden">
         <table className="w-full">
           <thead className="bg-surface-container-low border-b border-outline-variant/20">
@@ -129,6 +150,7 @@ const AdminBerita = () => {
                 <td className="px-6 py-4 font-label-md font-semibold">{berita.judul}</td>
                 <td className="px-6 py-4 font-label-sm line-clamp-2">{berita.deskripsi}</td>
                 <td className="px-6 py-4 text-right space-x-2">
+                  <button onClick={() => handlePreview(berita)} className="text-primary hover:underline">Preview</button>
                   <button onClick={() => handleEdit(berita)} className="text-primary hover:underline">Edit</button>
                   <button onClick={() => handleDelete(berita.id)} className="text-error hover:underline">Hapus</button>
                 </td>
@@ -137,6 +159,107 @@ const AdminBerita = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Modal Preview Berita (mirip BeritaDetailPage) */}
+      {previewBerita && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={closePreview}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-surface-container-lowest rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header modal */}
+            <div className="px-6 py-4 border-b border-outline-variant/20 flex items-center justify-between">
+              <h2 className="font-headline-md text-on-surface">Preview Berita</h2>
+              <button onClick={closePreview} className="w-9 h-9 rounded-full hover:bg-primary/10 flex items-center justify-center">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Konten berita (scrollable) */}
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="rounded-xl overflow-hidden shadow-sm mb-6">
+                <img src={previewBerita.gambar} alt={previewBerita.judul} className="w-full h-64 object-cover" />
+              </div>
+              <h1 className="font-display-lg text-3xl font-bold text-primary mb-3">
+                {previewBerita.judul}
+              </h1>
+              <p className="text-sm text-on-surface-variant mb-6 flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">calendar_today</span>
+                {previewBerita.tanggal}
+              </p>
+              <div className="prose max-w-none font-body-md text-on-surface-variant leading-relaxed">
+                <p>{previewBerita.deskripsi}</p>
+              </div>
+
+              {/* Share Section (seperti di BeritaDetailPage) */}
+              <div className="mt-10 pt-6 border-t border-outline-variant/20">
+                <p className="font-label-md font-semibold text-on-surface mb-3">Bagikan berita ini:</p>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(previewBerita.judul)}&url=${encodeURIComponent(window.location.href)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#1DA1F2] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  >
+                    <FaTwitter className="text-lg" />
+                    Twitter
+                  </a>
+                  <a
+                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#1877F2] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  >
+                    <FaFacebook className="text-lg" />
+                    Facebook
+                  </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      alert('Link berita disalin! Anda bisa membagikannya di Instagram.');
+                    }}
+                    className="bg-[#E4405F] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  >
+                    <FaInstagram className="text-lg" />
+                    Instagram
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      alert('Link berita disalin! Anda bisa membagikannya di TikTok.');
+                    }}
+                    className="bg-[#000000] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  >
+                    <FaTiktok className="text-lg" />
+                    TikTok
+                  </button>
+                  <button
+                    onClick={() => copyLink(window.location.href)}
+                    className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-container transition-colors"
+                  >
+                    <FaWhatsapp className="text-lg" />
+                    WhatsApp
+                  </button>
+                  <button
+                    onClick={() => copyLink(window.location.href)}
+                    className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-container transition-colors"
+                  >
+                    <FaLink className="text-lg" />
+                    Salin Link
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer modal */}
+            <div className="px-6 py-4 border-t border-outline-variant/20 flex justify-end">
+              <button onClick={closePreview} className="px-4 py-2 bg-primary text-white rounded-xl">Tutup</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

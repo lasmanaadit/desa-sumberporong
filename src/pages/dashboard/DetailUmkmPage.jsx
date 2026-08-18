@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/dashboard/Sidebar';
 import Topbar from '../../components/dashboard/Topbar';
 import { dummyProduk } from '../../data/umkmDummy';
+import { FaWhatsapp } from 'react-icons/fa';
 
 const DetailUmkmPage = () => {
   const { id } = useParams();
@@ -93,10 +94,26 @@ const DetailUmkmPage = () => {
                   <p className="text-3xl font-bold text-primary">{formatRupiah(produk.harga)}</p>
                   {produk.berat && <p className="font-body-md text-on-surface-variant">/ {produk.berat}</p>}
                 </div>
-                <div className="grid grid-cols-2 gap-4 mt-6 p-4 bg-surface-container-low rounded-xl">
-                  <div><p className="font-label-sm text-on-surface-variant">Stok</p><p className="font-headline-md text-on-surface">{produk.stok} item</p></div>
-                  <div><p className="font-label-sm text-on-surface-variant">Tanggal Upload</p><p className="font-headline-md text-on-surface">{formatTanggal(produk.tanggalUpload)}</p></div>
-                  {produk.updatedAt && <div className="col-span-2"><p className="font-label-sm text-on-surface-variant">Terakhir Diperbarui</p><p className="font-headline-md text-on-surface">{formatTanggal(produk.updatedAt)}</p></div>}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-4 bg-surface-container-low rounded-xl">
+                  <div>
+                    <p className="font-label-sm text-on-surface-variant">
+                      Tanggal Upload
+                    </p>
+                    <p className="font-headline-md text-on-surface">
+                      {formatTanggal(produk.tanggalUpload)}
+                    </p>
+                  </div>
+
+                  {produk.updatedAt && (
+                    <div>
+                      <p className="font-label-sm text-on-surface-variant">
+                        Terakhir Diperbarui
+                      </p>
+                      <p className="font-headline-md text-on-surface">
+                        {formatTanggal(produk.updatedAt)}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-6"><h3 className="font-headline-md text-on-surface text-lg">Deskripsi</h3><p className="font-body-md text-on-surface-variant mt-2 leading-relaxed">{produk.deskripsi}</p></div>
 
@@ -105,7 +122,8 @@ const DetailUmkmPage = () => {
                     <h3 className="font-headline-md text-on-surface text-lg">Kontak & Link</h3>
                     <div className="flex flex-wrap gap-3 mt-2">
                       {produk.ecommerce && <a href={produk.ecommerce} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500 text-white text-sm hover:bg-blue-600 transition-colors"><span className="material-symbols-outlined text-base">shopping_bag</span>E-Commerce</a>}
-                      {produk.whatsapp && <a href={`https://wa.me/${produk.whatsapp}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 text-white text-sm hover:bg-green-600 transition-colors"><span className="material-symbols-outlined text-base">whatsapp</span>WhatsApp</a>}
+                      {produk.whatsapp && <a href={`https://wa.me/${produk.whatsapp}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-500 text-white text-sm hover:bg-green-600 transition-colors"><FaWhatsapp className="text-lg" />
+                    WhatsApp</a>}
                     </div>
                   </div>
                 )}

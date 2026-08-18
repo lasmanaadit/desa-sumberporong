@@ -2,12 +2,17 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
+// Dummy data dengan field baru
 const dummySku = [
   {
     id: 1,
     namaLengkap: 'Andi Saputra',
     nik: '1234567890123456',
     nomorKK: '1234567890123456',
+    jenisKelamin: 'Laki-laki',
+    agama: 'Islam',
+    tempatLahir: 'Malang',
+    tanggalLahir: '12/08/2000',
     alamat: 'Jl. Merdeka No. 10, Sumberporong',
     rt: '001',
     rw: '002',
@@ -27,6 +32,10 @@ const dummySku = [
     namaLengkap: 'Budi Santoso',
     nik: '1234567890123457',
     nomorKK: '1234567890123457',
+    jenisKelamin: 'Laki-laki',
+    agama: 'Kristen Protestan',
+    tempatLahir: 'Surabaya',
+    tanggalLahir: '05/11/1995',
     alamat: 'Jl. Kenangan No. 5',
     rt: '003',
     rw: '001',
@@ -38,10 +47,9 @@ const dummySku = [
     rtUsaha: '003',
     rwUsaha: '001',
     dokumen: { ktp: 'ktp_budi.pdf', kk: 'kk_budi.pdf', fotoUsaha: 'foto_kopi.jpg' },
-    status: 'Diproses', // masih diproses
+    status: 'Diproses',
     tanggal: '2026-08-10',
   },
-  // tambahkan lebih banyak
 ];
 
 const AdminPengajuanSku = () => {
@@ -51,7 +59,6 @@ const AdminPengajuanSku = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Filter data berdasarkan tab
   const filteredData = skuList.filter(item => {
     if (activeTab === 'Diproses') return item.status === 'Diproses';
     return item.status === 'Disetujui' || item.status === 'Ditolak';
@@ -61,15 +68,14 @@ const AdminPengajuanSku = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
-  // Handle approve/decline
   const handleApprove = (id) => {
     setSkuList(prev => prev.map(item => item.id === id ? { ...item, status: 'Disetujui' } : item));
-    alert('Pengajuan SKU disetujui');
+    setSelected(null);
   };
 
   const handleDecline = (id) => {
     setSkuList(prev => prev.map(item => item.id === id ? { ...item, status: 'Ditolak' } : item));
-    alert('Pengajuan SKU ditolak');
+    setSelected(null);
   };
 
   return (
@@ -95,7 +101,7 @@ const AdminPengajuanSku = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden">
+      <div className="overflow-x-auto w-full">
         <table className="w-full">
           <thead className="bg-surface-container-low border-b border-outline-variant/20">
             <tr>
@@ -149,7 +155,7 @@ const AdminPengajuanSku = () => {
         </div>
       )}
 
-      {/* Preview Modal */}
+      {/* Preview Modal dengan field baru */}
       {selected && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelected(null)}>
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-surface-container-lowest rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -167,6 +173,10 @@ const AdminPengajuanSku = () => {
                     <div><dt className="font-label-sm text-on-surface-variant">Nama</dt><dd className="font-label-md">{selected.namaLengkap}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">NIK</dt><dd className="font-label-md">{selected.nik}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">No KK</dt><dd className="font-label-md">{selected.nomorKK}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">Jenis Kelamin</dt><dd className="font-label-md">{selected.jenisKelamin}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">Agama</dt><dd className="font-label-md">{selected.agama}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">Tempat Lahir</dt><dd className="font-label-md">{selected.tempatLahir}</dd></div>
+                    <div><dt className="font-label-sm text-on-surface-variant">Tanggal Lahir</dt><dd className="font-label-md">{selected.tanggalLahir}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">Alamat</dt><dd className="font-label-md">{selected.alamat}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">RT / RW</dt><dd className="font-label-md">{selected.rt} / {selected.rw}</dd></div>
                     <div><dt className="font-label-sm text-on-surface-variant">Kode Pos</dt><dd className="font-label-md">{selected.kodePos}</dd></div>
