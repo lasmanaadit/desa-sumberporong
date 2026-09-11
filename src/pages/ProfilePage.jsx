@@ -13,12 +13,12 @@ import gmbr6 from '../assets/gmbr6.jpg';
 const ProfilePage = () => {
   // Data gambar era kolonial (6 gambar)
   const colonialImages = [
-    gmbr1.jpg,
-    gmbr2.jpg,
-    gmbr3.jpg,
-    gmbr4.jpg,
-    gmbr5.jpg,
-    gmbr6.jpg,
+    gmbr1,
+    gmbr2,
+    gmbr3,
+    gmbr4,
+    gmbr5,
+    gmbr6,
   ];
 
   return (
