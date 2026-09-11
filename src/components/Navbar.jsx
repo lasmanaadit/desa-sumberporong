@@ -1,14 +1,16 @@
 // src/components/Navbar.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '/src/assets/logo.webp';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [hoveredMenu, setHoveredMenu] = useState(null);
+  const dropdownRef = useRef(null);
 
   // ==========================================
   // STATE LOGIN
@@ -16,7 +18,6 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Cek status login saat komponen mount & setiap kali ada perubahan di localStorage
   useEffect(() => {
     const checkLogin = () => {
       const userData = localStorage.getItem('user');
@@ -36,11 +37,27 @@ const Navbar = () => {
     };
 
     checkLogin();
-
-    // Listen untuk perubahan localStorage dari tab lain (opsional)
     window.addEventListener('storage', checkLogin);
     return () => window.removeEventListener('storage', checkLogin);
   }, []);
+
+  // ==========================================
+  // CLOSE DROPDOWN SAAT KLIK DI LUAR
+  // ==========================================
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // ==========================================
+  // ROLE HELPER
+  // ==========================================
+  const role = user?.role?.name || user?.role || 'user';
 
   // ==========================================
   // DATA MENU
@@ -58,7 +75,10 @@ const Navbar = () => {
   // ==========================================
   // CLOSE MOBILE MENU
   // ==========================================
-  const closeMenu = () => setIsMenuOpen(false);
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+    setIsDropdownOpen(false);
+  };
 
   // ==========================================
   // CEK ACTIVE MENU
@@ -73,6 +93,8 @@ const Navbar = () => {
   // ==========================================
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('admin');
     setIsLoggedIn(false);
     setUser(null);
     closeMenu();
@@ -80,16 +102,20 @@ const Navbar = () => {
   };
 
   // ==========================================
-  // HANDLE CLICK DASHBOARD / LOGIN
+  // HANDLE NAVIGASI DASHBOARD
   // ==========================================
-  const handleAuthAction = () => {
-    if (isLoggedIn) {
-      navigate('/dashboard');
-    } else {
-      navigate('/login');
-    }
+  const handleDashboardClick = (path) => {
+    navigate(path);
     closeMenu();
   };
+
+  // Path dashboard sesuai role
+  const dashboardPath =
+    role === 'admin'
+      ? '/admin'
+      : role === 'superadmin'
+        ? '/superadmin'
+        : '/dashboard';
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-surface/90 dark:bg-on-background/90 backdrop-blur-md shadow-sm transition-all duration-300">
@@ -125,18 +151,14 @@ const Navbar = () => {
                   end={menu.path === '/'}
                   onMouseEnter={() => setHoveredMenu(menu.path)}
                   onMouseLeave={() => setHoveredMenu(null)}
-                  className={`
-                    relative py-3 px-1 transition-colors duration-200
-                    ${
-                      active
-                        ? 'text-primary dark:text-primary-fixed'
-                        : 'text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed'
-                    }
-                  `}
+                  className={`relative py-3 px-1 transition-colors duration-200 ${
+                    active
+                      ? 'text-primary dark:text-primary-fixed'
+                      : 'text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed'
+                  }`}
                 >
                   <span className="relative z-10">{menu.name}</span>
 
-                  {/* ACTIVE INDICATOR */}
                   {active && (
                     <motion.span
                       layoutId="navbar-active-indicator"
@@ -145,7 +167,6 @@ const Navbar = () => {
                     />
                   )}
 
-                  {/* HOVER INDICATOR */}
                   <AnimatePresence>
                     {hoveredMenu === menu.path && !active && (
                       <motion.span
@@ -163,25 +184,72 @@ const Navbar = () => {
           </div>
 
           {/* ==================================================
-              TOMBOL LOGIN / DASHBOARD
+              TOMBOL AUTH / DASHBOARD (DESKTOP)
           ================================================== */}
-          <motion.button
-            onClick={handleAuthAction}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.96, y: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            className={`
-              ml-lg flex items-center gap-2 px-5 py-2.5 rounded-lg font-label-md font-medium shadow-sm hover:shadow-md transition-shadow duration-200
-              ${isLoggedIn ? 'bg-secondary text-white' : 'bg-primary text-white'}
-            `}
-          >
-            <span className="material-symbols-outlined text-lg">
-              {isLoggedIn ? 'dashboard' : 'account_circle'}
-            </span>
-            {isLoggedIn ? 'Dashboard' : 'Login'}
-          </motion.button>
+          {isLoggedIn ? (
+            <div className="relative ml-lg" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen((prev) => !prev)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-label-md font-medium shadow-sm hover:shadow-md transition-shadow duration-200 bg-secondary text-white"
+              >
+                <span className="material-symbols-outlined text-lg">dashboard</span>
+                Dashboard
+                <span className="material-symbols-outlined text-lg">
+                  {isDropdownOpen ? 'expand_less' : 'expand_more'}
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-2 w-56 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-lg overflow-hidden z-50"
+                  >
+                    {/* Satu tombol dashboard sesuai role */}
+                    <button
+                      onClick={() => handleDashboardClick(dashboardPath)}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-primary/5 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-primary">
+                        {role === 'admin'
+                          ? 'admin_panel_settings'
+                          : role === 'superadmin'
+                            ? 'supervisor_account'
+                            : 'person'}
+                      </span>
+                      <span className="font-label-md">
+                        {role === 'admin'
+                          ? 'Dashboard Admin'
+                          : role === 'superadmin'
+                            ? 'Dashboard Superadmin'
+                            : 'Dashboard User'}
+                      </span>
+                    </button>
+
+                    {/* Logout – selalu ada */}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-error/5 transition-colors border-t border-outline-variant/20"
+                    >
+                      <span className="material-symbols-outlined text-error">logout</span>
+                      <span className="font-label-md text-error">Log Out</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              className="ml-lg flex items-center gap-2 px-5 py-2.5 rounded-lg font-label-md font-medium shadow-sm hover:shadow-md transition-shadow duration-200 bg-primary text-white"
+            >
+              <span className="material-symbols-outlined text-lg">account_circle</span>
+              Login
+            </button>
+          )}
         </div>
 
         {/* ==================================================
@@ -219,43 +287,57 @@ const Navbar = () => {
                     to={menu.path}
                     end={menu.path === '/'}
                     onClick={closeMenu}
-                    className={`
-                      relative py-3 px-3 rounded-lg transition-all duration-200
-                      ${
-                        active
-                          ? 'bg-primary/10 text-primary dark:text-primary-fixed'
-                          : 'text-on-surface-variant dark:text-surface-variant hover:bg-primary/5 hover:text-primary dark:hover:text-primary-fixed'
-                      }
-                    `}
+                    className={`relative py-3 px-3 rounded-lg transition-all duration-200 ${
+                      active
+                        ? 'bg-primary/10 text-primary dark:text-primary-fixed'
+                        : 'text-on-surface-variant dark:text-surface-variant hover:bg-primary/5 hover:text-primary dark:hover:text-primary-fixed'
+                    }`}
                   >
                     <span>{menu.name}</span>
                   </NavLink>
                 );
               })}
 
-              {/* TOMBOL LOGIN / DASHBOARD MOBILE */}
-              <motion.button
-                onClick={handleAuthAction}
-                whileTap={{ scale: 0.97 }}
-                className={`
-                  flex items-center justify-center gap-2 w-full mt-sm py-3 px-4 rounded-lg font-medium shadow-sm
-                  ${isLoggedIn ? 'bg-secondary text-white' : 'bg-primary text-white'}
-                `}
-              >
-                <span className="material-symbols-outlined text-lg">
-                  {isLoggedIn ? 'dashboard' : 'account_circle'}
-                </span>
-                {isLoggedIn ? 'Dashboard' : 'Login'}
-              </motion.button>
+              {/* AUTH / DASHBOARD MOBILE */}
+              {isLoggedIn ? (
+                <div className="w-full mt-sm border border-outline-variant/20 rounded-lg overflow-hidden">
+                  {/* Satu tombol dashboard sesuai role */}
+                  <button
+                    onClick={() => handleDashboardClick(dashboardPath)}
+                    className="flex items-center gap-2 w-full py-3 px-4 text-left bg-primary text-white hover:bg-primary/80 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-white">
+                      {role === 'admin'
+                        ? 'admin_panel_settings'
+                        : role === 'superadmin'
+                          ? 'supervisor_account'
+                          : 'person'}
+                    </span>
+                    <span>
+                      {role === 'admin'
+                        ? 'Dashboard Admin'
+                        : role === 'superadmin'
+                          ? 'Dashboard Superadmin'
+                          : 'Dashboard User'}
+                    </span>
+                  </button>
 
-              {/* Jika sudah login, tambahkan tombol Logout di mobile */}
-              {isLoggedIn && (
+                  {/* Logout – selalu ada */}
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 w-full py-3 px-4 text-left bg-error text-white hover:bg-error/80 transition-colors border-t border-white/20"
+                  >
+                    <span className="material-symbols-outlined text-white">logout</span>
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              ) : (
                 <button
-                  onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-lg border border-outline-variant/30 text-on-surface-variant hover:bg-error-container/10 hover:text-error transition-colors"
+                  onClick={() => { navigate('/login'); closeMenu(); }}
+                  className="flex items-center justify-center gap-2 w-full mt-sm py-3 px-4 rounded-lg font-medium shadow-sm bg-primary text-white"
                 >
-                  <span className="material-symbols-outlined text-lg">logout</span>
-                  Logout
+                  <span className="material-symbols-outlined text-lg">account_circle</span>
+                  Login
                 </button>
               )}
             </div>

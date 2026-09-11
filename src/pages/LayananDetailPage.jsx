@@ -221,16 +221,7 @@ const LayananDetailPage = () => {
         </div>
 
         {/* Tombol Aksi */}
-        <div className="mt-10 flex flex-wrap gap-4">
-          <button className="bg-primary hover:bg-primary-container text-on-primary px-8 py-3 rounded-lg font-label-md text-label-md transition-colors flex items-center gap-2">
-            <span className="material-symbols-outlined text-[20px]">description</span>
-            Ajukan Sekarang
-          </button>
-          <button className="border border-outline-variant hover:bg-surface-container text-on-surface px-8 py-3 rounded-lg font-label-md text-label-md transition-colors flex items-center gap-2">
-            <span className="material-symbols-outlined text-[20px]">download</span>
-            Unduh Formulir
-          </button>
-        </div>
+
       </main>
 
       <Footer />

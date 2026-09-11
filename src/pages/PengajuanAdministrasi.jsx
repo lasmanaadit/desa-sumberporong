@@ -2,9 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-import Sidebar from '../components/dashboard/Sidebar';
-import Topbar from '../components/dashboard/Topbar';
-
 const PengajuanAdministrasi = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
@@ -25,36 +22,16 @@ const PengajuanAdministrasi = () => {
       icon: 'storefront',
       path: '/dashboard/pengajuan/sku',
     },
-    {
-      title: 'Surat Keterangan Domisili',
-      description:
-        'Ajukan surat keterangan domisili sebagai bukti tempat tinggal.',
-      icon: 'home_pin',
-      path: '/dashboard/pengajuan/domisili',
-    },
-    {
-      title: 'Surat Keterangan Lainnya',
-      description:
-        'Ajukan berbagai surat keterangan desa sesuai kebutuhan Anda.',
-      icon: 'description',
-      path: '/dashboard/pengajuan/lainnya',
-    },
   ];
 
   return (
     <div className="min-h-screen bg-background">
 
       {/* ================= SIDEBAR ================= */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
-      />
 
       {/* ================= MAIN ================= */}
-      <div className="lg:ml-72 min-h-screen">
+      <div className="min-w-0">
 
-        {/* ================= TOPBAR ================= */}
-        <Topbar setIsOpen={setIsSidebarOpen} />
 
         {/* ================= CONTENT ================= */}
         <main className="p-6 lg:p-8">

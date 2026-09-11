@@ -1,277 +1,889 @@
 // src/pages/GaleriPage.jsx
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+import {
+  AnimatePresence,
+  motion,
+} from 'framer-motion';
+
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-// Data galeri dengan rasio gambar berbeda (seperti App Store)
-const galeriData = [
-  {
-    id: 1,
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuU7y5aA4z47q34iv7V_NM3igt1eFXj2uucAoHLb3L5fmhO34gADtryeDoalEK81TeyAA8PsiFzWKYIHvgPMIaDzdzdHLQHyKXXVf3cUYL-bhMgcu6eUDjh3WY1GXX1PyWVwWAp-kNfcKEiUuyxPD0sw13YYcqP_uaw-QgTWrrL74ADxAroiUoR4xSS3Jj2W0Byq4BPqIkzDGu8Mj_AoWNHvzd4yyZ3N6Eu7w6VllsZl6i_BfAlOGY',
-    title: 'Kegiatan Gotong Royong',
-    category: 'Kegiatan Desa',
-    span: 'col-span-2 row-span-2', // gambar besar
-    aspect: 'aspect-[4/3]',
-  },
-  {
-    id: 2,
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCI6HDnZAGl2sJmoZnnZMxsnD_tgympf0QrdGgQARmrWW0UlZ9P2iKtneByyLHCKYjtGyE5zp7wilHDMUSFxgyY3opEDRMbGpZ8gwkoLf8skNJq2PqApMeG7F5xdjBSmtu4puGPDbD_dhneuuJ7dFwLDxr0ZfD7c3fohUMVr7vmbXbPF61Ch8QUwxlMvonqnYWyy2zMvJsbgFXVfHxRrwRNb0Jx3TgvpXHNPD9XJ8Dcky9DZg3z6RQ_',
-    title: 'Panen Raya',
-    category: 'Pertanian',
-    span: 'col-span-1 row-span-1',
-    aspect: 'aspect-square',
-  },
-  {
-    id: 3,
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDV7RkZyV3IUnrtnbfHsK56QVvw48Y4gF2Z8poqOWoV7xKm9fY_VkwFCM-jQCRRNQ7S0YLpD7J_nLKVhP4OCIEDdCZt67Jbwe-tV5oUM7h9BSiULRAolO4SYIPSDSW50gf_OKEEkamSVBrqUx16SpqW_OqGoKYSu5RTd1ny6ENA6OTU2PJQ3tH10Wj6w0-oPLG-oSSiUWxUpP74yQsJPxzLdnSKGU6gTQDAmYQLRphbg-BALKKuPPzX',
-    title: 'Pengajian Akbar',
-    category: 'Kegiatan Keagamaan',
-    span: 'col-span-1 row-span-2',
-    aspect: 'aspect-[3/4]',
-  },
-  {
-    id: 4,
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAxf7Tu8mWHw1jYO7jcyGy9hXtHeiO2ZM92SqrYjaNe83Ih2fQr75Mrdn12ZBTsSYwrctqy58s7CAUBKUTp9HMlatB5b8qEHZptRbxN1_Mt_Qrku1ZTWBbab_RZaNt69CE1KSpk_9aSNUhVbK0M1dLpgYrS0KJ8Br30VbUS1KhPYHbck3ofpqFpt2Tahz8rM1jKEbaH3dTzVCm3BFFEmFyXDAvEJ3hOOFW1q7YKkVpmHs27dmPcAy65',
-    title: 'Pelatihan UMKM',
-    category: 'Pemberdayaan',
-    span: 'col-span-1 row-span-1',
-    aspect: 'aspect-square',
-  },
-  {
-    id: 5,
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB__i96LNthXDgpEKeanFhhn3_0JSvPfpWbE7_gXbM60eRjl1u0zdYwQ5SVbEM4deCqLBne0B0MD7_l3RVcQQc5MGzgzSCUBpJMXlKRBtC9VbkEr6IXYrZd-OJQfSpqNdMNTnRfLVGFbsv9JCOE8PC0J6X7Ut47astIi0lUlp7tHDlh2h23rpznb2_fV8gfaUASjbvGAkCuTUZZcDtVpZ_WnWvHObFGmFjcUW1ko1i5CZyd4juWr1yu',
-    title: 'Pembagian BLT',
-    category: 'Bantuan Sosial',
-    span: 'col-span-2 row-span-2',
-    aspect: 'aspect-[16/9]',
-  },
-  {
-    id: 6,
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBqwrjuI0YrE7BhqWMHd7HJx7wDnmJoRxTysfKLAqq2Yj1C34fbURWfJR3J4va4CA34DNSiqhFzbN94RB24qV3pga81WIQcoMMxKBxFKOSBAAkHisYd5a-VQ39CGTDtdrXD-zjnuQcSe9IrVE-wXjmZv9tkPsVlBd9uK1tBjandXXvoBBFyNKzYcRoInPWqZRlXGsrN2MsksqgNSR4kestjKTMDkVZ-T2YMXwNvZNp7_nJHBmy0r_gJ',
-    title: 'Kesenian Wayang Kulit',
-    category: 'Budaya',
-    span: 'col-span-1 row-span-1',
-    aspect: 'aspect-square',
-  },
-  {
-    id: 7,
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDWitW2I9R40M63d2OJtYQldUTJPDRbHYY-Iv3t5Ze-0TPL7bomUOhAJE9jIrNPZYNhROuhtTu5UV_3mbY-swfLSY9nbDpknm_xunm2fjSfk63SDvWTY9yfnGwTpUsRQf3DYTcgC6zOE5Xe1RrNFlw7ICAR9IvaGyRGLGzNPT_KK6mHLy6M1NB90vz6_cQb0rtJoO2ArY7I14qh6-dRqagLmMzAIeuoOBoc-v1_gMT_vtEdnfHGE41r',
-    title: 'Sambutan Kepala Desa',
-    category: 'Kegiatan Desa',
-    span: 'col-span-1 row-span-1',
-    aspect: 'aspect-square',
-  },
-  {
-    id: 8,
-    url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHIhSY-cdXMypCCUf85dHlznqiHMI6AlScoECPWa6VxfWVKq390z48n_HQ2vW8Ih0XekeES1PAeXc1ew8npqxcWyFvm1AHyMWyWma4KxV34IMN1iRUT9GW9PrJ6RY9x3yUY67-3qrTB0B7N1P0yudA5APzoffVeNnh6GcZZnRhw_GWXqV__PhkOfJlG87N_AWFeQviMXf8h5Q2sulNAxK-2bV1yAcUY7yzepIxg-tQI8Uxrex65Rwl',
-    title: 'Struktur Organisasi Desa',
-    category: 'Administrasi',
-    span: 'col-span-1 row-span-2',
-    aspect: 'aspect-[3/4]',
-  },
-];
+import api from '../api/axios';
 
-const GaleriPage = () => {
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [filter, setFilter] = useState('Semua');
+/*
+|--------------------------------------------------------------------------
+| API BASE URL
+|--------------------------------------------------------------------------
+*/
 
-  // Filter kategori unik
-  const categories = ['Semua', ...new Set(galeriData.map(item => item.category))];
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  'http://127.0.0.1:8000/api';
 
-  // Filter data berdasarkan kategori
-  const filteredData = filter === 'Semua' 
-    ? galeriData 
-    : galeriData.filter(item => item.category === filter);
+/*
+|--------------------------------------------------------------------------
+| HELPER FOTO
+|--------------------------------------------------------------------------
+*/
 
-  // Variants untuk animasi
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-      },
-    },
-  };
+const getFotoUrl = (
+  item
+) => {
+  if (
+    !item?.id
+  ) {
+    return '';
+  }
 
-  const itemVariants = {
-    hidden: { 
-      opacity: 0,
-      scale: 0.8,
-    },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        type: 'spring',
-        stiffness: 200,
-        damping: 20,
-      },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.6,
-      transition: {
-        duration: 0.2,
-      },
-    },
-  };
+  /*
+  |--------------------------------------------------------------------------
+  | URL lengkap
+  |--------------------------------------------------------------------------
+  */
 
-  // Modal variants (App Store style)
-  const modalVariants = {
-    hidden: {
-      opacity: 0,
-      scale: 0.8,
-      y: 50,
-    },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 300,
-        damping: 25,
-      },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.7,
-      y: 30,
-      transition: {
-        duration: 0.25,
-      },
-    },
-  };
+  if (
+    typeof item.foto === 'string' &&
+    /^https?:\/\//i.test(
+      item.foto
+    )
+  ) {
+    return item.foto;
+  }
 
-  const overlayVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.3 } },
-    exit: { opacity: 0, transition: { duration: 0.2 } },
-  };
+  /*
+  |--------------------------------------------------------------------------
+  | URL /api/...
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    typeof item.foto === 'string' &&
+    item.foto.startsWith(
+      '/api/'
+    )
+  ) {
+    const base =
+      API_BASE_URL.replace(
+        /\/api$/,
+        ''
+      );
+
+    return (
+      base +
+      item.foto
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | URL relatif
+  |--------------------------------------------------------------------------
+  */
+
+  if (
+    typeof item.foto === 'string' &&
+    item.foto.startsWith(
+      '/'
+    )
+  ) {
+    return (
+      API_BASE_URL +
+      item.foto
+    );
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | FALLBACK PUBLIC
+  |--------------------------------------------------------------------------
+  */
 
   return (
-    <div className="bg-background text-on-surface font-body-md antialiased pt-18 min-h-screen">
-      {/* Navbar */}
+    API_BASE_URL +
+    '/files/public/galeri/' +
+    item.id
+  );
+};
+
+/*
+|--------------------------------------------------------------------------
+| COMPONENT
+|--------------------------------------------------------------------------
+*/
+
+const GaleriPage = () => {
+  const [
+    galeriList,
+    setGaleriList,
+  ] = useState([]);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  const [
+    error,
+    setError,
+  ] = useState('');
+
+  const [
+    selectedImage,
+    setSelectedImage,
+  ] = useState(null);
+
+  const [
+    imageErrors,
+    setImageErrors,
+  ] = useState({});
+
+  /*
+  |--------------------------------------------------------------------------
+  | FETCH
+  |--------------------------------------------------------------------------
+  */
+
+  useEffect(() => {
+    let cancelled =
+      false;
+
+    const fetchGaleri =
+      async () => {
+        setLoading(true);
+        setError('');
+
+        try {
+          const response =
+            await api.get(
+              '/galeri'
+            );
+
+          if (
+            cancelled
+          ) {
+            return;
+          }
+
+          const responseData =
+            response.data?.data;
+
+          const items =
+            Array.isArray(
+              responseData
+            )
+              ? responseData
+              : [];
+
+          setGaleriList(
+            items
+          );
+
+          setImageErrors(
+            {}
+          );
+        } catch (
+          err
+        ) {
+          if (
+            cancelled
+          ) {
+            return;
+          }
+
+          console.error(
+            'Gagal mengambil galeri:',
+            err
+          );
+
+          setGaleriList(
+            []
+          );
+
+          setError(
+            err.response?.data
+              ?.message ||
+              'Gagal mengambil data galeri desa.'
+          );
+        } finally {
+          if (
+            !cancelled
+          ) {
+            setLoading(
+              false
+            );
+          }
+        }
+      };
+
+    fetchGaleri();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /*
+  |--------------------------------------------------------------------------
+  | SORT
+  |--------------------------------------------------------------------------
+  */
+
+  const sortedGaleri =
+    useMemo(() => {
+      return [
+        ...galeriList,
+      ].sort(
+        (
+          a,
+          b
+        ) => {
+          const dateA =
+            new Date(
+              a.created_at ||
+                0
+            ).getTime();
+
+          const dateB =
+            new Date(
+              b.created_at ||
+                0
+            ).getTime();
+
+          return (
+            dateB -
+            dateA
+          );
+        }
+      );
+    }, [
+      galeriList,
+    ]);
+
+  /*
+  |--------------------------------------------------------------------------
+  | IMAGE ERROR
+  |--------------------------------------------------------------------------
+  */
+
+  const handleImageError =
+    (
+      id
+    ) => {
+      setImageErrors(
+        (
+          previous
+        ) => ({
+          ...previous,
+
+          [id]:
+            true,
+        })
+      );
+    };
+
+  /*
+  |--------------------------------------------------------------------------
+  | ANIMATION
+  |--------------------------------------------------------------------------
+  */
+
+  const containerVariants =
+    {
+      hidden: {
+        opacity: 0,
+      },
+
+      visible: {
+        opacity: 1,
+
+        transition: {
+          staggerChildren:
+            0.05,
+        },
+      },
+    };
+
+  const itemVariants =
+    {
+      hidden: {
+        opacity: 0,
+        scale: 0.94,
+      },
+
+      visible: {
+        opacity: 1,
+        scale: 1,
+
+        transition: {
+          type: 'spring',
+          stiffness: 220,
+          damping: 20,
+        },
+      },
+
+      exit: {
+        opacity: 0,
+        scale: 0.88,
+
+        transition: {
+          duration: 0.2,
+        },
+      },
+    };
+
+  const modalVariants =
+    {
+      hidden: {
+        opacity: 0,
+        scale: 0.9,
+        y: 20,
+      },
+
+      visible: {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+
+        transition: {
+          type: 'spring',
+          stiffness: 280,
+          damping: 25,
+        },
+      },
+
+      exit: {
+        opacity: 0,
+        scale: 0.9,
+        y: 20,
+
+        transition: {
+          duration: 0.2,
+        },
+      },
+    };
+
+  /*
+  |--------------------------------------------------------------------------
+  | RENDER
+  |--------------------------------------------------------------------------
+  */
+
+  return (
+    <div className="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col">
+
       <Navbar />
 
-      {/* ====== HERO GALERI ====== */}
+      {/* =========================================================
+          HERO
+      ========================================================== */}
+
       <section className="relative py-xl bg-primary/5">
+
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+
+          <motion.h1
+            initial={{
+              opacity: 0,
+              y: -20,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.6,
+            }}
             className="font-display-lg text-display-lg text-primary mb-md"
           >
             Galeri Desa Sumberporong
           </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+
+          <motion.p
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            transition={{
+              delay: 0.2,
+              duration: 0.6,
+            }}
             className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto"
           >
-            Dokumentasi kegiatan dan potensi desa dalam bingkai gambar yang bercerita.
+            Dokumentasi kegiatan dan berbagai momen Desa Sumberporong dalam bingkai gambar.
           </motion.p>
+
         </div>
+
       </section>
 
+      {/* =========================================================
+          MAIN
+      ========================================================== */}
 
-      {/* ====== GALERI APP STORE STYLE (Masonry Grid) ====== */}
-      <section className="py-xl bg-surface-container-low">
+      <main className="grow py-xl bg-surface-container-low">
+
         <div className="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={filter}
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="grid grid-cols-2 md:grid-cols-4 auto-rows-50 gap-3 md:gap-4"
-            >
-              {filteredData.map((item) => (
-                <motion.div
-                  key={item.id}
-                  variants={itemVariants}
-                  layoutId={`card-${item.id}`}
-                  onClick={() => setSelectedImage(item)}
-                  className={`${item.span} cursor-pointer group overflow-hidden rounded-2xl bg-surface shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-[1.02]`}
-                >
-                  <div className={`relative w-full h-full ${item.aspect} md:${item.aspect}`}>
-                    <motion.img
-                      src={item.url}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.4 }}
-                    />
-                    {/* Gradient overlay seperti App Store */}
-                    <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
-                      </div>
-                    </div>
+
+          {/* =======================================================
+              ERROR
+          ======================================================== */}
+
+          {!loading &&
+            error && (
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  y: 10,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                className="max-w-2xl mx-auto mb-8 rounded-2xl border border-red-200 bg-red-50 px-5 py-5"
+              >
+
+                <div className="flex flex-col items-center text-center">
+
+                  <div className="w-14 h-14 rounded-2xl bg-red-100 text-red-500 flex items-center justify-center">
+
+                    <span className="material-symbols-outlined text-3xl">
+                      error
+                    </span>
+
                   </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
 
-          {filteredData.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-xl"
+                  <h2 className="font-headline-md text-lg text-red-700 mt-4">
+                    Gagal memuat galeri
+                  </h2>
+
+                  <p className="text-sm text-red-600 mt-2">
+                    {
+                      error
+                    }
+                  </p>
+
+                </div>
+
+              </motion.div>
+            )}
+
+          {/* =======================================================
+              LOADING
+          ======================================================== */}
+
+          {loading && (
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4"
+              style={{
+                gridAutoRows:
+                  '180px',
+              }}
             >
-              <p className="font-body-lg text-body-lg text-on-surface-variant">
-                Tidak ada gambar untuk kategori ini.
-              </p>
-            </motion.div>
-          )}
-        </div>
-      </section>
 
-      {/* ====== MODAL APP STORE STYLE ====== */}
+              {Array.from(
+                {
+                  length: 8,
+                }
+              ).map(
+                (
+                  _,
+                  index
+                ) => {
+
+                  let spanClass =
+                    'col-span-1 row-span-1';
+
+                  if (
+                    index ===
+                      0 ||
+                    index ===
+                      5
+                  ) {
+                    spanClass =
+                      'col-span-2 row-span-2';
+                  }
+
+                  return (
+                    <div
+                      key={
+                        index
+                      }
+                      className={`${spanClass} rounded-2xl overflow-hidden bg-surface-container-high animate-pulse`}
+                    />
+                  );
+                }
+              )}
+
+            </div>
+          )}
+
+          {/* =======================================================
+              EMPTY
+          ======================================================== */}
+
+          {!loading &&
+            !error &&
+            sortedGaleri.length ===
+              0 && (
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  y: 15,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                className="max-w-2xl mx-auto rounded-2xl border border-outline-variant/20 bg-surface-container-lowest px-6 py-14 text-center"
+              >
+
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+
+                  <span className="material-symbols-outlined text-4xl">
+                    photo_library
+                  </span>
+
+                </div>
+
+                <h2 className="font-headline-md text-2xl font-bold text-on-surface mt-5">
+                  Galeri belum tersedia
+                </h2>
+
+                <p className="text-sm text-on-surface-variant mt-2">
+                  Belum ada dokumentasi foto yang ditambahkan oleh pemerintah desa.
+                </p>
+
+              </motion.div>
+            )}
+
+          {/* =======================================================
+              GALERI
+          ======================================================== */}
+
+          {!loading &&
+            !error &&
+            sortedGaleri.length >
+              0 && (
+              <AnimatePresence mode="wait">
+
+                <motion.div
+                  variants={
+                    containerVariants
+                  }
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4"
+                  style={{
+                    gridAutoRows:
+                      '180px',
+                  }}
+                >
+
+                  {sortedGaleri.map(
+                    (
+                      item,
+                      index
+                    ) => {
+
+                      const imageUrl =
+                        getFotoUrl(
+                          item
+                        );
+
+                      const hasError =
+                        Boolean(
+                          imageErrors[
+                            item.id
+                          ]
+                        );
+
+                      /*
+                      |----------------------------------------------------
+                      | LAYOUT
+                      |----------------------------------------------------
+                      */
+
+                      let spanClass =
+                        'col-span-1 row-span-1';
+
+                      if (
+                        index ===
+                        0
+                      ) {
+                        spanClass =
+                          'col-span-2 row-span-2';
+                      }
+
+                      if (
+                        index ===
+                        3
+                      ) {
+                        spanClass =
+                          'col-span-1 row-span-2';
+                      }
+
+                      if (
+                        index ===
+                        5
+                      ) {
+                        spanClass =
+                          'col-span-2 row-span-2';
+                      }
+
+                      if (
+                        index ===
+                        7
+                      ) {
+                        spanClass =
+                          'col-span-1 row-span-2';
+                      }
+
+                      return (
+                        <motion.button
+                          key={
+                            item.id
+                          }
+                          variants={
+                            itemVariants
+                          }
+                          type="button"
+                          disabled={
+                            hasError ||
+                            !imageUrl
+                          }
+                          onClick={() => {
+                            if (
+                              hasError ||
+                              !imageUrl
+                            ) {
+                              return;
+                            }
+
+                            setSelectedImage(
+                              {
+                                ...item,
+                                imageUrl,
+                              }
+                            );
+                          }}
+                          className={`${spanClass} relative min-w-0 min-h-0 overflow-hidden rounded-2xl bg-surface shadow-sm border border-outline-variant/10 group text-left cursor-pointer disabled:cursor-default focus:outline-none focus:ring-2 focus:ring-primary/30`}
+                        >
+
+                          {/* =================================================
+                              IMAGE
+                          ================================================== */}
+
+                          {hasError ||
+                          !imageUrl ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-container-low text-on-surface-variant">
+
+                              <span className="material-symbols-outlined text-5xl opacity-30">
+                                broken_image
+                              </span>
+
+                              <span className="text-xs mt-2 opacity-60">
+                                Foto tidak tersedia
+                              </span>
+
+                            </div>
+                          ) : (
+                            <img
+                              src={
+                                imageUrl
+                              }
+                              alt={`Galeri Desa ${item.id}`}
+                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              loading={
+                                index <
+                                4
+                                  ? 'eager'
+                                  : 'lazy'
+                              }
+                              onError={() =>
+                                handleImageError(
+                                  item.id
+                                )
+                              }
+                            />
+                          )}
+
+                          {/* =================================================
+                              OVERLAY
+                          ================================================== */}
+
+                          {!hasError &&
+                            imageUrl && (
+                              <>
+                                <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+
+                                  <p className="text-xs text-white/80">
+                                    Klik untuk melihat
+                                  </p>
+
+                                  <p className="text-sm text-white font-semibold mt-1">
+                                    Dokumentasi Desa
+                                  </p>
+
+                                </div>
+                              </>
+                            )}
+
+                        </motion.button>
+                      );
+                    }
+                  )}
+
+                </motion.div>
+
+              </AnimatePresence>
+            )}
+
+        </div>
+
+      </main>
+
+      {/* =========================================================
+          MODAL
+      ========================================================== */}
+
       <AnimatePresence>
+
         {selectedImage && (
+
           <motion.div
-            variants={overlayVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="fixed inset-0 z-100 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-            onClick={() => setSelectedImage(null)}
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            exit={{
+              opacity: 0,
+            }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={() =>
+              setSelectedImage(
+                null
+              )
+            }
           >
+
             <motion.div
-              variants={modalVariants}
+              variants={
+                modalVariants
+              }
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="bg-surface rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-5xl max-h-screen bg-surface rounded-3xl overflow-hidden shadow-2xl"
+              onClick={(
+                event
+              ) =>
+                event.stopPropagation()
+              }
             >
-              {/* Gambar Modal */}
-              <div className="relative bg-black/5">
+
+              {/* =================================================
+                  IMAGE
+              ================================================== */}
+
+              <div className="relative flex items-center justify-center bg-black min-h-80">
+
                 <img
-                  src={selectedImage.url}
-                  alt={selectedImage.title}
-                  className="w-full h-auto max-h-[60vh] object-contain"
+                  src={
+                    selectedImage.imageUrl
+                  }
+                  alt={`Galeri Desa ${selectedImage.id}`}
+                  className="w-full max-h-[70vh] object-contain"
                 />
+
+                {/* CLOSE */}
+
                 <button
-                  onClick={() => setSelectedImage(null)}
-                  className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
+                  type="button"
+                  onClick={() =>
+                    setSelectedImage(
+                      null
+                    )
+                  }
+                  aria-label="Tutup gambar"
+                  title="Tutup"
+                  className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-white/40"
                 >
-                  <span className="material-symbols-outlined">close</span>
+
+                  <span className="material-symbols-outlined">
+                    close
+                  </span>
+
                 </button>
+
               </div>
+
+              {/* =================================================
+                  INFO
+              ================================================== */}
+
+              <div className="px-5 py-4">
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+
+                  <div>
+
+                    <p className="font-semibold text-on-surface">
+                      Dokumentasi Desa Sumberporong
+                    </p>
+
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      Foto #
+                      {
+                        selectedImage.id
+                      }
+                    </p>
+
+                  </div>
+
+                  {selectedImage.created_at && (
+                    <p className="text-xs text-on-surface-variant">
+
+                      {new Date(
+                        selectedImage.created_at
+                      ).toLocaleDateString(
+                        'id-ID',
+                        {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        }
+                      )}
+
+                    </p>
+                  )}
+
+                </div>
+
+              </div>
+
             </motion.div>
+
           </motion.div>
+
         )}
+
       </AnimatePresence>
 
-      {/* Footer */}
       <Footer />
+
     </div>
   );
 };

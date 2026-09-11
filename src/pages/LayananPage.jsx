@@ -1,18 +1,18 @@
 // src/pages/LayananPage.jsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';  // <-- perbaiki import
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 const LayananPage = () => {
-
   const [openFaq, setOpenFaq] = useState(null);
+  const navigate = useNavigate();
 
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);
   };
-  const navigate = useNavigate();
 
+  // Data FAQ
   const faqData = [
     {
       question: 'Berapa lama proses pembuatan KTP Online?',
@@ -24,7 +24,7 @@ const LayananPage = () => {
     }
   ];
 
-  // Data layanan lainnya (digunakan untuk grid di bawah)
+  // Data layanan lainnya
   const otherServices = [
     { slug: 'surat-pengantar-nikah', title: 'Surat Pengantar Nikah', icon: 'favorite' },
     { slug: 'surat-kematian', title: 'Surat Kematian', icon: 'description' },
@@ -33,6 +33,19 @@ const LayananPage = () => {
     { slug: 'skck-pengantar', title: 'SKCK Pengantar', icon: 'policy' },
     { slug: 'surat-tidak-mampu', title: 'Surat Keterangan Tidak Mampu', icon: 'gavel' },
   ];
+
+  // Fungsi untuk menangani navigasi ke form pengajuan
+  const handleStartService = (targetPath) => {
+    // Periksa apakah user sudah login (token ada di localStorage)
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Jika sudah login, langsung ke form
+      navigate(targetPath);
+    } else {
+      // Jika belum login, arahkan ke halaman login dengan state path tujuan
+      navigate('/login', { state: { from: targetPath } });
+    }
+  };
 
   return (
     <div className="bg-background text-on-background antialiased min-h-screen flex flex-col pt-18">
@@ -57,7 +70,7 @@ const LayananPage = () => {
         {/* Primary Services (Bento Grid Style) */}
         <section className="px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
-            {/* Card 1 */}
+            {/* Card 1: KTP */}
             <div className="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_6px_-1px_rgb(0,0,0,0.1),0_2px_4px_-2px_rgb(0,0,0,0.1)] border border-[#E2E8F0] hover:shadow-[0_10px_15px_-3px_rgb(0,0,0,0.1)] transition-shadow duration-300 flex flex-col gap-md relative overflow-hidden group">
               <div className="absolute -right-12 -top-12 w-40 h-40 bg-surface-container rounded-full opacity-50 group-hover:scale-110 transition-transform duration-500"></div>
               <div className="w-12 h-12 rounded-lg bg-[#Eefbf0] text-primary flex items-center justify-center relative z-10">
@@ -70,13 +83,17 @@ const LayananPage = () => {
                 </p>
               </div>
               
-              <button onClick={() => navigate('/dashboard/pengajuan/ktp')} className="mt-auto bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-surface-tint transition-colors w-max relative z-10 flex items-center gap-2">
+              {/* Tombol "Mulai Urus Sekarang" untuk KTP */}
+              <button 
+                onClick={() => handleStartService('/dashboard/pengajuan/ktp')} 
+                className="mt-auto bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-surface-tint transition-colors w-max relative z-10 flex items-center gap-2"
+              >
                 Mulai Urus Sekarang
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
             </div>
 
-            {/* Card 2 */}
+            {/* Card 2: SKU */}
             <div className="bg-surface-container-lowest rounded-xl p-lg shadow-[0_4px_6px_-1px_rgb(0,0,0,0.1),0_2px_4px_-2px_rgb(0,0,0,0.1)] border border-[#E2E8F0] hover:shadow-[0_10px_15px_-3px_rgb(0,0,0,0.1)] transition-shadow duration-300 flex flex-col gap-md relative overflow-hidden group">
               <div className="absolute -right-12 -top-12 w-40 h-40 bg-surface-container rounded-full opacity-50 group-hover:scale-110 transition-transform duration-500"></div>
               <div className="w-12 h-12 rounded-lg bg-[#Eefbf0] text-primary flex items-center justify-center relative z-10">
@@ -88,7 +105,12 @@ const LayananPage = () => {
                   Dapatkan Surat Keterangan Usaha (SKU) resmi untuk keperluan perbankan atau legalitas usaha Anda dengan cepat.
                 </p>
               </div>
-              <button onClick={() => navigate('/dashboard/pengajuan/sku')}className="mt-auto bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-surface-tint transition-colors w-max relative z-10 flex items-center gap-2">
+              
+              {/* Tombol "Mulai Urus Sekarang" untuk SKU */}
+              <button 
+                onClick={() => handleStartService('/dashboard/pengajuan/sku')} 
+                className="mt-auto bg-primary text-on-primary font-label-md text-label-md py-3 px-6 rounded-lg hover:bg-surface-tint transition-colors w-max relative z-10 flex items-center gap-2"
+              >
                 Mulai Urus Sekarang
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
@@ -111,33 +133,25 @@ const LayananPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-md">
               {/* Step 1 */}
               <div className="flex flex-col items-center text-center gap-sm p-md bg-surface-container-lowest rounded-xl shadow-[0_4px_6px_-1px_rgb(0,0,0,0.1)] border border-[#E2E8F0]">
-                <div className="w-16 h-16 rounded-full bg-[#Eefbf0] text-primary flex items-center justify-center font-headline-md text-headline-md">
-                  1
-                </div>
+                <div className="w-16 h-16 rounded-full bg-[#Eefbf0] text-primary flex items-center justify-center font-headline-md text-headline-md">1</div>
                 <h4 className="font-label-md text-label-md text-on-surface font-semibold">Isi Formulir</h4>
                 <p className="font-body-md text-body-md text-on-surface-variant text-sm">Lengkapi data diri sesuai kebutuhan layanan.</p>
               </div>
               {/* Step 2 */}
               <div className="flex flex-col items-center text-center gap-sm p-md bg-surface-container-lowest rounded-xl shadow-[0_4px_6px_-1px_rgb(0,0,0,0.1)] border border-[#E2E8F0]">
-                <div className="w-16 h-16 rounded-full bg-[#Eefbf0] text-primary flex items-center justify-center font-headline-md text-headline-md">
-                  2
-                </div>
+                <div className="w-16 h-16 rounded-full bg-[#Eefbf0] text-primary flex items-center justify-center font-headline-md text-headline-md">2</div>
                 <h4 className="font-label-md text-label-md text-on-surface font-semibold">Unggah Dokumen</h4>
                 <p className="font-body-md text-body-md text-on-surface-variant text-sm">Siapkan dan unggah foto dokumen persyaratan.</p>
               </div>
               {/* Step 3 */}
               <div className="flex flex-col items-center text-center gap-sm p-md bg-surface-container-lowest rounded-xl shadow-[0_4px_6px_-1px_rgb(0,0,0,0.1)] border border-[#E2E8F0]">
-                <div className="w-16 h-16 rounded-full bg-[#Eefbf0] text-primary flex items-center justify-center font-headline-md text-headline-md">
-                  3
-                </div>
+                <div className="w-16 h-16 rounded-full bg-[#Eefbf0] text-primary flex items-center justify-center font-headline-md text-headline-md">3</div>
                 <h4 className="font-label-md text-label-md text-on-surface font-semibold">Verifikasi</h4>
                 <p className="font-body-md text-body-md text-on-surface-variant text-sm">Tunggu proses verifikasi oleh petugas desa.</p>
               </div>
               {/* Step 4 */}
               <div className="flex flex-col items-center text-center gap-sm p-md bg-surface-container-lowest rounded-xl shadow-[0_4px_6px_-1px_rgb(0,0,0,0.1)] border border-[#E2E8F0]">
-                <div className="w-16 h-16 rounded-full bg-[#Eefbf0] text-primary flex items-center justify-center font-headline-md text-headline-md">
-                  4
-                </div>
+                <div className="w-16 h-16 rounded-full bg-[#Eefbf0] text-primary flex items-center justify-center font-headline-md text-headline-md">4</div>
                 <h4 className="font-label-md text-label-md text-on-surface font-semibold">Selesai / Ambil</h4>
                 <p className="font-body-md text-body-md text-on-surface-variant text-sm">Dokumen digital siap diunduh atau fisik diambil.</p>
               </div>
@@ -148,7 +162,7 @@ const LayananPage = () => {
         {/* Other Services Grid */}
         <section className="px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto w-full flex flex-col gap-lg">
           <div className="flex justify-between items-end border-b border-[#F1F5F9] pb-4">
-            <h2 className="font-headline-md text-headline-md text-on-background">Layanan Lainnya</h2>
+            <h2 className="font-headline-md text-headline-md text-on-background">Layanan yang Memerlukan Kehadiran di Kantor Desa</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-md">
             {otherServices.map((service) => (

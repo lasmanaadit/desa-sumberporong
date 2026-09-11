@@ -1,10 +1,9 @@
 // src/components/dashboard/Topbar.jsx
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import ProfileDropdown from '../ProfileDropdown';
 
-const Topbar = ({ setIsOpen }) => {
-  console.log('[Topbar] setIsOpen received:', setIsOpen); // Debugging
-
+const Topbar = ({ isOpen, setIsOpen }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -18,70 +17,28 @@ const Topbar = ({ setIsOpen }) => {
     }
   }, []);
 
-  const getInitials = (name) => {
-    if (!name) return '?';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return parts[0][0] + parts[1][0];
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
-
-  const handleBurgerClick = () => {
-    setIsOpen(true);
-  };
-
   return (
     <header className="h-20 bg-surface-container-lowest border-b border-outline-variant/20 flex items-center justify-between px-6 lg:px-8 sticky top-0 z-30">
-      
-      {/* Mobile menu button dengan pengamanan */}
       <button
-        onClick={handleBurgerClick}
-        className="lg:hidden w-10 h-10 rounded-xl hover:bg-primary/10 flex items-center justify-center text-on-surface-variant"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-10 h-10 rounded-xl hover:bg-primary/10 flex items-center justify-center text-on-surface-variant"
       >
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: '24px' }}
-        >
-          menu
+        <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>
+          {isOpen ? 'close' : 'menu'}
         </span>
       </button>
 
       <div className="hidden lg:block">
-        <p className="font-body-md text-on-surface-variant">
-          Dashboard Pengguna
-        </p>
+        <p className="font-body-md text-on-surface-variant">Dashboard Pengguna</p>
       </div>
 
-      {/* User profile */}
-      <motion.div
-        initial={{ opacity: 0, x: 15 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex items-center gap-3"
-      >
+      <div className="flex items-center gap-3">
         <div className="text-right hidden sm:block">
-          <p className="font-label-sm text-on-surface-variant tracking-normal">
-            Selamat datang,
-          </p>
-          <p className="font-label-md font-semibold text-on-surface">
-            {user?.name || 'Pengguna'}
-          </p>
+          <p className="font-label-sm text-on-surface-variant tracking-normal">Selamat datang,</p>
+          <p className="font-label-md font-semibold text-on-surface">{user?.name || 'Pengguna'}</p>
         </div>
-
-        <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center text-white shadow-sm">
-          <span className="font-headline-md text-base font-semibold">
-            {getInitials(user?.name)}
-          </span>
-        </div>
-
-        <span
-          className="material-symbols-outlined text-on-surface-variant hidden sm:block"
-          style={{ fontSize: '22px' }}
-        >
-          expand_more
-        </span>
-      </motion.div>
+        <ProfileDropdown />
+      </div>
     </header>
   );
 };

@@ -1,10 +1,25 @@
+
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { motion } from "framer-motion";
 import logo from "/src/assets/logo.webp";
+import { useAuth } from "../auth/AuthContext";
 
 const LoginPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const containerVariants = {
     hidden: {
@@ -53,6 +68,138 @@ const LoginPage = () => {
     },
   };
 
+  /*
+  |--------------------------------------------------------------------------
+  | Redirect Berdasarkan Role
+  |--------------------------------------------------------------------------
+  |
+  | requestedPath hanya digunakan jika memang sesuai dengan role user.
+  | Ini mencegah user diarahkan ke halaman yang bukan hak aksesnya.
+  |
+  */
+
+  const getRedirectPath = (
+    user,
+    requestedPath = null
+  ) => {
+    const role = user?.role?.name;
+
+    if (role === "superadmin") {
+      if (
+        requestedPath?.startsWith("/superadmin") ||
+        requestedPath?.startsWith("/admin")
+      ) {
+        return requestedPath;
+      }
+
+      return "/superadmin";
+    }
+
+    if (role === "admin") {
+      if (
+        requestedPath?.startsWith("/admin")
+      ) {
+        return requestedPath;
+      }
+
+      return "/admin";
+    }
+
+    if (role === "user") {
+      if (
+        requestedPath?.startsWith("/dashboard")
+      ) {
+        return requestedPath;
+      }
+
+      return "/dashboard";
+    }
+
+    return "/";
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    setError("");
+
+    const normalizedEmail = email.trim();
+
+    if (!normalizedEmail) {
+      setError("Email wajib diisi.");
+      return;
+    }
+
+    if (!password) {
+      setError("Password wajib diisi.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const data = await login({
+        email: normalizedEmail,
+        password,
+      });
+
+      /*
+      |--------------------------------------------------------------------------
+      | Requested Path
+      |--------------------------------------------------------------------------
+      |
+      | Jika user sebelumnya mencoba membuka route protected,
+      | React Router menyimpannya pada location.state.from.
+      |
+      */
+
+      const requestedPath =
+        location.state?.from?.pathname || null;
+
+      /*
+      |--------------------------------------------------------------------------
+      | Tentukan Redirect
+      |--------------------------------------------------------------------------
+      */
+
+      const targetPath = getRedirectPath(
+        data.user,
+        requestedPath
+      );
+
+      navigate(targetPath, {
+        replace: true,
+      });
+    } catch (err) {
+      const responseMessage =
+        err.response?.data?.message;
+
+      const validationErrors =
+        err.response?.data?.errors;
+
+      if (responseMessage) {
+        setError(responseMessage);
+      } else if (validationErrors) {
+        const firstError = Object.values(
+          validationErrors
+        )
+          .flat()
+          .find(Boolean);
+
+        setError(
+          firstError ||
+            "Data login tidak valid."
+        );
+      } else {
+        setError(
+          "Tidak dapat terhubung ke server. Silakan coba lagi."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8 md:px-8">
       <motion.div
@@ -77,6 +224,7 @@ const LoginPage = () => {
         {/* =====================================================
             PANEL KIRI
         ====================================================== */}
+
         <motion.section
           variants={leftVariants}
           className="
@@ -95,7 +243,6 @@ const LoginPage = () => {
             lg:min-h-full
           "
         >
-          {/* Dekorasi lingkaran atas */}
           <div
             className="
               absolute
@@ -108,7 +255,6 @@ const LoginPage = () => {
             "
           />
 
-          {/* Dekorasi lingkaran bawah */}
           <div
             className="
               absolute
@@ -157,7 +303,6 @@ const LoginPage = () => {
               </div>
             </div>
 
-            {/* Badge */}
             <div className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10">
               <span className="material-symbols-outlined text-lg">
                 account_balance
@@ -174,9 +319,18 @@ const LoginPage = () => {
           {/* Konten sambutan */}
           <div className="relative z-10 my-auto py-12 max-w-90">
             <motion.h2
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+              initial={{
+                opacity: 0,
+                y: 15,
+              }}
+              animate={{
+                opacity: 1,
+                y: 0,
+              }}
+              transition={{
+                delay: 0.4,
+                duration: 0.5,
+              }}
               className="
                 text-white
                 text-4xl
@@ -194,9 +348,16 @@ const LoginPage = () => {
             </motion.h2>
 
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              transition={{
+                delay: 0.6,
+                duration: 0.6,
+              }}
               className="
                 text-primary-fixed
                 text-base
@@ -205,7 +366,8 @@ const LoginPage = () => {
                 max-w-80
               "
             >
-              Masuk untuk mengakses layanan administrasi dan informasi Desa
+              Masuk untuk mengakses layanan
+              administrasi dan informasi Desa
               Sumberporong dengan lebih mudah.
             </motion.p>
           </div>
@@ -221,6 +383,7 @@ const LoginPage = () => {
         {/* =====================================================
             PANEL KANAN
         ====================================================== */}
+
         <motion.section
           variants={rightVariants}
           className="
@@ -251,12 +414,56 @@ const LoginPage = () => {
               </h2>
 
               <p className="text-on-surface-variant mt-2 text-base md:text-lg">
-                Silakan masukkan akun Anda untuk melanjutkan.
+                Silakan masukkan akun Anda untuk
+                melanjutkan.
               </p>
             </div>
 
+            {/* Error */}
+            {error && (
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  y: -8,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                className="
+                  mb-6
+                  rounded-lg
+                  border
+                  border-red-300
+                  bg-red-50
+                  px-4
+                  py-3
+                  text-sm
+                  text-red-700
+                "
+              >
+                <div className="flex items-start gap-3">
+                  <span
+                    className="material-symbols-outlined shrink-0"
+                    style={{
+                      fontSize: "20px",
+                    }}
+                  >
+                    error
+                  </span>
+
+                  <span>
+                    {error}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+
             {/* Form */}
-            <form className="space-y-6">
+            <form
+              className="space-y-6"
+              onSubmit={handleSubmit}
+            >
               {/* Email */}
               <div>
                 <label
@@ -288,8 +495,20 @@ const LoginPage = () => {
 
                   <input
                     id="email"
+                    name="email"
                     type="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+
+                      if (error) {
+                        setError("");
+                      }
+                    }}
                     placeholder="nama@email.com"
+                    autoComplete="email"
+                    disabled={loading}
+                    required
                     className="
                       w-full
                       h-13
@@ -307,6 +526,8 @@ const LoginPage = () => {
                       focus:border-primary
                       focus:ring-2
                       focus:ring-primary/20
+                      disabled:opacity-60
+                      disabled:cursor-not-allowed
                     "
                   />
                 </div>
@@ -343,8 +564,24 @@ const LoginPage = () => {
 
                   <input
                     id="password"
-                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+
+                      if (error) {
+                        setError("");
+                      }
+                    }}
                     placeholder="Masukkan password"
+                    autoComplete="current-password"
+                    disabled={loading}
+                    required
                     className="
                       w-full
                       h-13
@@ -362,12 +599,19 @@ const LoginPage = () => {
                       focus:border-primary
                       focus:ring-2
                       focus:ring-primary/20
+                      disabled:opacity-60
+                      disabled:cursor-not-allowed
                     "
                   />
 
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() =>
+                      setShowPassword(
+                        (prev) => !prev
+                      )
+                    }
+                    disabled={loading}
                     className="
                       absolute
                       right-4
@@ -376,6 +620,7 @@ const LoginPage = () => {
                       text-on-surface-variant
                       hover:text-primary
                       transition-colors
+                      disabled:opacity-50
                     "
                     aria-label={
                       showPassword
@@ -384,7 +629,9 @@ const LoginPage = () => {
                     }
                   >
                     <span className="material-symbols-outlined">
-                      {showPassword ? "visibility_off" : "visibility"}
+                      {showPassword
+                        ? "visibility_off"
+                        : "visibility"}
                     </span>
                   </button>
                 </div>
@@ -408,8 +655,17 @@ const LoginPage = () => {
               {/* Tombol Login */}
               <motion.button
                 type="submit"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
+                disabled={loading}
+                whileHover={
+                  !loading
+                    ? { scale: 1.01 }
+                    : undefined
+                }
+                whileTap={
+                  !loading
+                    ? { scale: 0.98 }
+                    : undefined
+                }
                 className="
                   w-full
                   h-13
@@ -425,13 +681,21 @@ const LoginPage = () => {
                   hover:bg-primary-container
                   transition-colors
                   duration-200
+                  disabled:opacity-60
+                  disabled:cursor-not-allowed
                 "
               >
                 <span className="material-symbols-outlined">
-                  login
+                  {loading
+                    ? "progress_activity"
+                    : "login"}
                 </span>
 
-                <span>Masuk</span>
+                <span>
+                  {loading
+                    ? "Memproses..."
+                    : "Masuk"}
+                </span>
               </motion.button>
             </form>
 
@@ -481,7 +745,9 @@ const LoginPage = () => {
                   arrow_back
                 </span>
 
-                <span>Kembali ke beranda</span>
+                <span>
+                  Kembali ke beranda
+                </span>
               </Link>
             </div>
           </div>

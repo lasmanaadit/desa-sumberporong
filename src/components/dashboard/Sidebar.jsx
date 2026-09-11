@@ -12,7 +12,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
     { name: 'Pengajuan Administrasi', path: '/dashboard/pengajuan', icon: 'description' },
     { name: 'Riwayat Pengajuan', path: '/dashboard/riwayat', icon: 'history' },
-    { name: 'Pengaduan', path: '/dashboard/pengaduan', icon: 'report' },
+    { name: 'Pengaduan', path: '/dashboard/pengaduan', icon: 'report', end: true }, // ← tambahkan end
+    { name: 'Riwayat Pengaduan', path: '/dashboard/pengaduan/riwayat', icon: 'history' },
   ];
 
   const umkmMenu = [
@@ -35,6 +36,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     navigate('/login');
     if (window.innerWidth < 1024) {
       setIsOpen(false);
@@ -43,19 +45,19 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   return (
     <>
-      {/* Overlay mobile */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setIsOpen(false)} />
       )}
 
       <aside
         className={`
-          fixed top-0 left-0 z-50 w-72 h-screen bg-surface-container-lowest
-          border-r border-outline-variant/30 flex flex-col transition-transform duration-300 overflow-hidden
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          fixed top-0 left-0 z-50 w-72 h-screen
+          bg-surface-container-lowest
+          border-r border-outline-variant/30
+          flex flex-col
+          transition-transform duration-300
+          overflow-hidden
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         {/* Logo */}
@@ -64,12 +66,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <div className="flex items-center gap-3">
               <img src={logo} alt="Logo Desa" className="w-12 h-12 object-contain" />
               <div>
-                <h1 className="font-headline-md text-primary text-lg font-bold leading-tight">
-                  Desa Sumberporong
-                </h1>
-                <p className="font-label-sm text-on-surface-variant tracking-normal">
-                  Sistem Informasi Desa
-                </p>
+                <h1 className="font-headline-md text-primary text-lg font-bold leading-tight">Desa Sumberporong</h1>
+                <p className="font-label-sm text-on-surface-variant tracking-normal">Sistem Informasi Desa</p>
               </div>
             </div>
           </NavLink>
@@ -77,28 +75,19 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
         {/* Menu */}
         <div className="flex-1 px-4 py-6 overflow-y-auto">
-          <p className="font-label-sm text-on-surface-variant mb-3 px-2">
-            MENU UTAMA
-          </p>
-
+          <p className="font-label-sm text-on-surface-variant mb-3 px-2">MENU UTAMA</p>
           <nav className="space-y-2">
             {mainMenu.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
-                end={item.path === '/dashboard'}
+                end={item.end ?? item.path === '/dashboard'}
                 onClick={closeMenu}
                 className={linkClass}
               >
                 {({ isActive }) => (
                   <>
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontSize: '22px',
-                        fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-                      }}
-                    >
+                    <span className="material-symbols-outlined" style={{ fontSize: '22px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>
                       {item.icon}
                     </span>
                     <span className="font-label-md">{item.name}</span>
@@ -107,60 +96,24 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               </NavLink>
             ))}
 
-            {/* UMKM submenu */}
+            {/* UMKM Submenu */}
             <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setIsUmkmOpen(!isUmkmOpen)}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all"
-              >
+              <button type="button" onClick={() => setIsUmkmOpen(!isUmkmOpen)} className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all">
                 <div className="flex items-center gap-3">
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: '22px' }}
-                  >
-                    storefront
-                  </span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>storefront</span>
                   <span className="font-label-md">UMKM</span>
                 </div>
-                <motion.span
-                  animate={{ rotate: isUmkmOpen ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="material-symbols-outlined"
-                  style={{ fontSize: '20px' }}
-                >
-                  expand_more
-                </motion.span>
+                <motion.span animate={{ rotate: isUmkmOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className="material-symbols-outlined" style={{ fontSize: '20px' }}>expand_more</motion.span>
               </button>
               <AnimatePresence initial={false}>
                 {isUmkmOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
-                  >
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
                     <div className="ml-5 mt-1 pl-4 border-l border-outline-variant/40 space-y-1">
                       {umkmMenu.map((item) => (
-                        <NavLink
-                          key={item.path}
-                          to={item.path}
-                          end
-                          onClick={closeMenu}
-                          className={linkClass}
-                        >
+                        <NavLink key={item.path} to={item.path} end onClick={closeMenu} className={linkClass}>
                           {({ isActive }) => (
                             <>
-                              <span
-                                className="material-symbols-outlined"
-                                style={{
-                                  fontSize: '20px',
-                                  fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-                                }}
-                              >
-                                {item.icon}
-                              </span>
+                              <span className="material-symbols-outlined" style={{ fontSize: '20px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>{item.icon}</span>
                               <span className="font-label-md">{item.name}</span>
                             </>
                           )}
@@ -174,16 +127,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </nav>
         </div>
 
-        {/* Bottom area */}
+        {/* Bottom Area */}
         <div className="px-4 py-4 border-t border-outline-variant/20">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-error/10 hover:text-error transition-all"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
-              logout
-            </span>
+          <button type="button" onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:bg-error/10 hover:text-error transition-all">
+            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>logout</span>
             <span className="font-label-md">Keluar</span>
           </button>
         </div>
