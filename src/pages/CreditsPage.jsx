@@ -3,8 +3,8 @@ import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import dev1 from '../assets/credits/dev1.jpg';
-import dev1 from '../assets/credits/dev2.jpg';
-import dev1 from '../assets/credits/dev3.jpg';
+import dev2 from '../assets/credits/dev2.jpg';
+import dev3 from '../assets/credits/dev3.jpg';
 
 // Ganti data ini sesuai developer sebenarnya
 const developers = [
