@@ -2,25 +2,28 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import dev1 from '../assets/credits/dev1.jpg';
+import dev1 from '../assets/credits/dev2.jpg';
+import dev1 from '../assets/credits/dev3.jpg';
 
 // Ganti data ini sesuai developer sebenarnya
 const developers = [
   {
     name: 'Lasmana Adiyatma Prafia',
     role: 'Front End Developer,UI/UX',
-    image: '/src/assets/credits/dev1.jpg',
+    image: dev1,
     bio: 'Bertanggung jawab pada pengembangan frontend .',
   },
   {
     name: 'Rayhan Bagas Makarim',
     role: 'Back End Developer',
-    image: '/src/assets/credits/dev2.jpg',
+    image: dev2,
     bio: 'Merancang Pembuatan restfullAPI dan integrasi API',
   },
   {
     name: 'Alfin Dahlin',
     role: 'UI/UX',
-    image: '/src/assets/credits/dev3.jpg',
+    image: dev3,
     bio: 'Merancang tampilan antarmuka dan pengalaman pengguna.',
   },
 ];
