@@ -3,16 +3,22 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import VisiMisi from '../components/VisiMisi';
 import PetaDesa from '../components/PetaDesa';
+import gmbr1 from '../assets/gmbr1.jpg';
+import gmbr2 from '../assets/gmbr2.jpg';
+import gmbr3 from '../assets/gmbr3.jpg';
+import gmbr4 from '../assets/gmbr4.jpg';
+import gmbr5 from '../assets/gmbr5.jpg';
+import gmbr6 from '../assets/gmbr6.jpg';
 
 const ProfilePage = () => {
   // Data gambar era kolonial (6 gambar)
   const colonialImages = [
-    'src/assets/gmbr1.jpg',
-    'src/assets/gmbr2.jpg',
-    'src/assets/gmbr3.jpg',
-    'src/assets/gmbr4.jpg',
-    'src/assets/gmbr5.jpg',
-    'src/assets/gmbr6.jpg',
+    gmbr1.jpg,
+    gmbr2.jpg,
+    gmbr3.jpg,
+    gmbr4.jpg,
+    gmbr5.jpg,
+    gmbr6.jpg,
   ];
 
   return (
