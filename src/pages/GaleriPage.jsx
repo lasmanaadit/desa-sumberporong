@@ -375,7 +375,7 @@ const GaleriPage = () => {
   */
 
   return (
-    <div className="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col">
+    <div className="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col pt-18">
 
       <Navbar />
 
