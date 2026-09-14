@@ -4,7 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 
-const PER_PAGE_FALLBACK = 10; // sesuai ->paginate(10) backend
+const ASSUMED_BACKEND_PER_PAGE = 10;
+const MAX_PAGES = 50;
+const PAGE_SIZE = 10;
 
 const STATUS_LABELS = {
   menunggu_verifikasi: 'Menunggu Verifikasi',
@@ -21,10 +23,8 @@ const STATUS_STYLES = {
 };
 
 const UmkmSayaPage = () => {
-  const [umkmList, setUmkmList] = useState([]);
+  const [allUmkm, setAllUmkm] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
@@ -34,64 +34,81 @@ const UmkmSayaPage = () => {
 
   /*
   |--------------------------------------------------------------------------
-  | FETCH PER HALAMAN
+  | FETCH SEMUA HALAMAN (LOOP)
   |--------------------------------------------------------------------------
   */
   useEffect(() => {
     let cancelled = false;
 
-    const fetchUmkm = async () => {
+    const fetchAll = async () => {
       setLoading(true);
       setError('');
 
       try {
-        const response = await api.get('/pengajuan/umkm', {
-          params: { page: currentPage },
-        });
+        const collected = [];
+        let page = 1;
+        let lastPage = 1;
 
-        if (cancelled) return;
+        while (page <= MAX_PAGES) {
+          const res = await api.get('/pengajuan/umkm', { params: { page } });
+          if (cancelled) return;
 
-        const root = response.data?.data;
+          const root = res.data || {};
+          const payload = root.data;
+          const topMeta = root.meta;
 
-        let items = [];
-        let meta = null;
+          let items = [];
+          let detectedLastPage = null;
 
-        if (Array.isArray(root)) {
-          items = root;
-        } else if (root && Array.isArray(root.data)) {
-          items = root.data;
-          meta = root.meta || null;
+          if (Array.isArray(payload)) {
+            // Format: { data: [...], meta: {...} }
+            items = payload;
+            detectedLastPage = topMeta?.last_page ?? null;
+          } else if (payload && Array.isArray(payload.data)) {
+            // Format: { data: { data: [...], meta: {...} } }
+            items = payload.data;
+            detectedLastPage =
+              payload.meta?.last_page ??
+              topMeta?.last_page ??
+              null;
+          }
+
+          if (items.length === 0) break;
+
+          collected.push(...items);
+
+          if (detectedLastPage != null) {
+            lastPage = Number(detectedLastPage) || 1;
+            if (page >= lastPage) break;
+          } else {
+            // Tidak ada meta → stop kalau halaman tidak penuh
+            if (items.length < ASSUMED_BACKEND_PER_PAGE) break;
+          }
+
+          page += 1;
         }
 
-        setUmkmList(items);
-
-        if (meta) {
-          setLastPage(Number(meta.last_page || 1));
-          setTotal(Number(meta.total || items.length));
-        } else {
-          // Fallback: kalau backend tidak kirim meta,
-          // anggap ada halaman berikutnya selama item full
-          setLastPage(items.length >= PER_PAGE_FALLBACK ? currentPage + 1 : currentPage);
-          setTotal(items.length);
+        if (!cancelled) {
+          setAllUmkm(collected);
+          setCurrentPage(1);
         }
       } catch (err) {
         if (cancelled) return;
         console.error('Gagal mengambil data UMKM:', err);
         setError(err.response?.data?.message || 'Gagal mengambil data UMKM.');
-        setUmkmList([]);
+        setAllUmkm([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
-    fetchUmkm();
-
+    fetchAll();
     return () => { cancelled = true; };
-  }, [currentPage]);
+  }, []);
 
   /*
   |--------------------------------------------------------------------------
-  | CLEANUP BLOB URL SAAT UNMOUNT
+  | CLEANUP BLOB URL
   |--------------------------------------------------------------------------
   */
   useEffect(() => {
@@ -102,6 +119,19 @@ const UmkmSayaPage = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /*
+  |--------------------------------------------------------------------------
+  | PAGINATION (CLIENT-SIDE)
+  |--------------------------------------------------------------------------
+  */
+  const totalPages = Math.max(1, Math.ceil(allUmkm.length / PAGE_SIZE));
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedUmkm = allUmkm.slice(startIndex, startIndex + PAGE_SIZE);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(1);
+  }, [currentPage, totalPages]);
 
   /*
   |--------------------------------------------------------------------------
@@ -130,11 +160,6 @@ const UmkmSayaPage = () => {
     return photos[0] || null;
   };
 
-  /*
-  |--------------------------------------------------------------------------
-  | LOAD PRIVATE PHOTO
-  |--------------------------------------------------------------------------
-  */
   const loadPrivatePhoto = async (photo) => {
     if (!photo?.id) return;
     if (photoUrls[photo.id]) return;
@@ -146,9 +171,7 @@ const UmkmSayaPage = () => {
       const response = await api.get(`/files/umkm/${photo.id}`, {
         responseType: 'blob',
       });
-
       const blobUrl = URL.createObjectURL(response.data);
-
       setPhotoUrls((prev) => ({ ...prev, [photo.id]: blobUrl }));
     } catch (err) {
       console.error('Gagal memuat foto UMKM:', err);
@@ -159,13 +182,13 @@ const UmkmSayaPage = () => {
   };
 
   useEffect(() => {
-    if (!Array.isArray(umkmList)) return;
-    umkmList.forEach((umkm) => {
+    if (!Array.isArray(paginatedUmkm)) return;
+    paginatedUmkm.forEach((umkm) => {
       const primaryPhoto = getPrimaryPhoto(umkm);
       if (primaryPhoto) loadPrivatePhoto(primaryPhoto);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [umkmList]);
+  }, [paginatedUmkm]);
 
   /*
   |--------------------------------------------------------------------------
@@ -195,7 +218,7 @@ const UmkmSayaPage = () => {
       const response = await api.patch(`/pengajuan/umkm/${umkm.id}/active`);
       const updated = response.data?.data;
 
-      setUmkmList((prev) =>
+      setAllUmkm((prev) =>
         prev.map((item) =>
           item.id === umkm.id
             ? updated || { ...item, is_active: nextState }
@@ -229,15 +252,13 @@ const UmkmSayaPage = () => {
     try {
       await api.delete(`/pengajuan/umkm/${umkm.id}`);
 
-      const newList = umkmList.filter((item) => item.id !== umkm.id);
-      setUmkmList(newList);
+      const newList = allUmkm.filter((item) => item.id !== umkm.id);
+      setAllUmkm(newList);
 
-      // Kalau halaman ini jadi kosong dan bukan page 1 → mundur
-      if (newList.length === 0 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
+      // Kalau halaman ini kosong dan bukan page 1 → mundur
+      const newTotalPages = Math.max(1, Math.ceil(newList.length / PAGE_SIZE));
+      if (currentPage > newTotalPages) setCurrentPage(newTotalPages);
 
-      // Revoke photo blob URL
       const primaryPhoto = getPrimaryPhoto(umkm);
       if (primaryPhoto?.id && photoUrls[primaryPhoto.id]) {
         URL.revokeObjectURL(photoUrls[primaryPhoto.id]);
@@ -260,7 +281,7 @@ const UmkmSayaPage = () => {
   |--------------------------------------------------------------------------
   */
   const goToPage = (page) => {
-    if (page < 1 || page > lastPage || page === currentPage) return;
+    if (page < 1 || page > totalPages || page === currentPage) return;
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -343,7 +364,7 @@ const UmkmSayaPage = () => {
             )}
 
             {/* EMPTY */}
-            {umkmList.length === 0 ? (
+            {allUmkm.length === 0 ? (
               <div className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-2xl px-6 py-16 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto">
                   <span className="material-symbols-outlined text-4xl">storefront</span>
@@ -372,7 +393,7 @@ const UmkmSayaPage = () => {
               <>
                 {/* LIST */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {umkmList.map((umkm) => {
+                  {paginatedUmkm.map((umkm) => {
                     const status = getStatusStyle(umkm.status);
                     const primaryPhoto = getPrimaryPhoto(umkm);
                     const primaryPhotoUrl = primaryPhoto?.id ? photoUrls[primaryPhoto.id] : null;
@@ -517,7 +538,7 @@ const UmkmSayaPage = () => {
                 </div>
 
                 {/* PAGINATION */}
-                {lastPage > 1 && (
+                {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
                     <button
                       type="button"
@@ -529,7 +550,7 @@ const UmkmSayaPage = () => {
                       <span className="material-symbols-outlined">chevron_left</span>
                     </button>
 
-                    {Array.from({ length: lastPage }, (_, i) => i + 1).map((page) => (
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <button
                         key={page}
                         type="button"
@@ -547,7 +568,7 @@ const UmkmSayaPage = () => {
                     <button
                       type="button"
                       onClick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === lastPage}
+                      disabled={currentPage === totalPages}
                       className="w-10 h-10 flex items-center justify-center rounded-lg border border-outline-variant/30 text-primary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/10 transition"
                       aria-label="Halaman berikutnya"
                     >
@@ -558,8 +579,11 @@ const UmkmSayaPage = () => {
 
                 {/* INFO TOTAL */}
                 <div className="mt-6 text-center text-sm text-on-surface-variant">
-                  Halaman <span className="font-semibold text-on-surface">{currentPage}</span> dari{' '}
-                  <span className="font-semibold text-on-surface">{lastPage}</span>
+                  Menampilkan{' '}
+                  <span className="font-semibold text-on-surface">
+                    {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, allUmkm.length)}
+                  </span>{' '}
+                  dari <span className="font-semibold text-on-surface">{allUmkm.length}</span> UMKM
                 </div>
               </>
             )}
