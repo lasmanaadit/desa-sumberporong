@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import TataCara from '../../components/dashboard/TataCaraKtp';
@@ -96,8 +96,129 @@ const SYARAT_DOKUMEN = {
   ],
 };
 
+/*
+|--------------------------------------------------------------------------
+| HELPER: Tanggal hari ini (YYYY-MM-DD)
+|--------------------------------------------------------------------------
+*/
+
+const getTodayIso = () => {
+  const today = new Date();
+
+  const year = today.getFullYear();
+
+  const month = String(
+    today.getMonth() + 1
+  ).padStart(2, '0');
+
+  const day = String(
+    today.getDate()
+  ).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+/*
+|--------------------------------------------------------------------------
+| HELPER: dd/mm/yyyy → YYYY-MM-DD
+|--------------------------------------------------------------------------
+|
+| Menerima:
+| - "12/05/2000"
+| - "12052000"
+| - "12-05-2000"
+|
+| Mengembalikan:
+| - "2000-05-12" kalau valid
+| - "" kalau tidak valid
+|
+*/
+
+const displayToIso = (display) => {
+  if (!display) {
+    return '';
+  }
+
+  const digits = String(
+    display
+  ).replace(/\D/g, '');
+
+  if (digits.length !== 8) {
+    return '';
+  }
+
+  const day = Number(
+    digits.slice(0, 2)
+  );
+
+  const month = Number(
+    digits.slice(2, 4)
+  );
+
+  const year = Number(
+    digits.slice(4, 8)
+  );
+
+  if (!day || !month || !year) {
+    return '';
+  }
+
+  const date = new Date(
+    year,
+    month - 1,
+    day
+  );
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return '';
+  }
+
+  return `${year}-${String(
+    month
+  ).padStart(2, '0')}-${String(
+    day
+  ).padStart(2, '0')}`;
+};
+
+/*
+|--------------------------------------------------------------------------
+| HELPER: YYYY-MM-DD → dd/mm/yyyy
+|--------------------------------------------------------------------------
+*/
+
+const isoToDisplay = (iso) => {
+  if (!iso) {
+    return '';
+  }
+
+  const [
+    year,
+    month,
+    day,
+  ] = String(iso).split('-');
+
+  if (!year || !month || !day) {
+    return '';
+  }
+
+  return `${day}/${month}/${year}`;
+};
+
 const KtpPage = () => {
   const navigate = useNavigate();
+
+  /*
+  |--------------------------------------------------------------------------
+  | DATE PICKER REF
+  |--------------------------------------------------------------------------
+  */
+
+  const datePickerRef =
+    useRef(null);
 
   const [form, setForm] =
     useState(INITIAL_FORM);
@@ -226,36 +347,44 @@ const KtpPage = () => {
     clearFieldError(backendKey);
   };
 
+  /*
+  |--------------------------------------------------------------------------
+  | TANGGAL LAHIR — Text input handler
+  |--------------------------------------------------------------------------
+  |
+  | Strategi: strip semua non-digit, lalu rebuild dengan slash.
+  | Backspace jadi normal karena tiap change di-rebuild dari digit murni.
+  |
+  */
+
   const handleTanggalLahirChange = (
     event
   ) => {
-    let value =
-      event.target.value.replace(
-        /[^0-9/]/g,
-        ''
-      );
+    const raw = event.target.value
+      .replace(/\D/g, '')
+      .slice(0, 8);
 
-    if (value.length > 10) {
-      return;
-    }
+    let formatted = '';
 
-    if (
-      value.length === 2 &&
-      !value.includes('/')
-    ) {
-      value += '/';
-    }
-
-    if (
-      value.length === 5 &&
-      !value.endsWith('/')
-    ) {
-      value += '/';
+    if (raw.length <= 2) {
+      formatted = raw;
+    } else if (raw.length <= 4) {
+      formatted =
+        raw.slice(0, 2) +
+        '/' +
+        raw.slice(2);
+    } else {
+      formatted =
+        raw.slice(0, 2) +
+        '/' +
+        raw.slice(2, 4) +
+        '/' +
+        raw.slice(4);
     }
 
     setForm((prev) => ({
       ...prev,
-      tanggalLahir: value,
+      tanggalLahir: formatted,
     }));
 
     setError('');
@@ -264,89 +393,90 @@ const KtpPage = () => {
     );
   };
 
-  const convertDateToApiFormat = (
-    value
+  /*
+  |--------------------------------------------------------------------------
+  | TANGGAL LAHIR — Native date picker handler
+  |--------------------------------------------------------------------------
+  */
+
+  const handleDatePickerChange = (
+    event
   ) => {
-    if (
-      !value ||
-      value.length !== 10
-    ) {
-      return null;
-    }
+    const iso = event.target.value;
 
-    const parts =
-      value.split('/');
+    setForm((prev) => ({
+      ...prev,
+      tanggalLahir:
+        isoToDisplay(iso),
+    }));
 
-    if (
-      parts.length !== 3
-    ) {
-      return null;
-    }
-
-    const [
-      day,
-      month,
-      year,
-    ] = parts.map(Number);
-
-    if (
-      !day ||
-      !month ||
-      !year
-    ) {
-      return null;
-    }
-
-    const date = new Date(
-      year,
-      month - 1,
-      day
+    setError('');
+    clearFieldError(
+      'tanggal_lahir'
     );
+  };
 
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !==
-        month - 1 ||
-      date.getDate() !== day
-    ) {
-      return null;
+  /*
+  |--------------------------------------------------------------------------
+  | TANGGAL LAHIR — Buka native date picker
+  |--------------------------------------------------------------------------
+  */
+
+  const openDatePicker = () => {
+    const el =
+      datePickerRef.current;
+
+    if (!el) {
+      return;
     }
 
-    return [
-      String(year).padStart(4, '0'),
-      String(month).padStart(2, '0'),
-      String(day).padStart(2, '0'),
-    ].join('-');
+    if (
+      typeof el.showPicker ===
+      'function'
+    ) {
+      try {
+        el.showPicker();
+
+        return;
+      } catch (e) {
+        // fallback
+      }
+    }
+
+    el.click();
   };
+
+  /*
+  |--------------------------------------------------------------------------
+  | HITUNG UMUR
+  |--------------------------------------------------------------------------
+  */
 
   const hitungUmur = (
     tanggalLahir
   ) => {
-    const apiDate =
-      convertDateToApiFormat(
+    const iso =
+      displayToIso(
         tanggalLahir
       );
 
-    if (!apiDate) {
+    if (!iso) {
       return null;
     }
 
-    const [
-      year,
-      month,
-      day,
-    ] = apiDate
-      .split('-')
-      .map(Number);
-
     const birthDate = new Date(
-      year,
-      month - 1,
-      day
+      `${iso}T00:00:00`
     );
 
-    const today =
-      new Date();
+    if (
+      Number.isNaN(
+        birthDate.getTime()
+      )
+    ) {
+      return null;
+    }
+
+    const today = new Date();
 
     let age =
       today.getFullYear() -
@@ -771,24 +901,57 @@ const KtpPage = () => {
       return;
     }
 
-    const tanggalLahirApi =
-      convertDateToApiFormat(
-        form.tanggalLahir
-      );
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDASI TANGGAL LAHIR
+    |--------------------------------------------------------------------------
+    */
 
-    if (!tanggalLahirApi) {
+    if (!form.tanggalLahir) {
       setFieldErrors({
         tanggal_lahir:
-          'Tanggal lahir harus valid dengan format dd/mm/yyyy.',
+          'Tanggal lahir wajib diisi.',
       });
 
       return;
     }
 
+    const tanggalLahirIso =
+      displayToIso(
+        form.tanggalLahir
+      );
+
+    if (!tanggalLahirIso) {
+      setFieldErrors({
+        tanggal_lahir:
+          'Format tanggal harus dd/mm/yyyy dan valid.',
+      });
+
+      return;
+    }
+
+    const birthDate = new Date(
+      `${tanggalLahirIso}T00:00:00`
+    );
+
     if (
-      new Date(tanggalLahirApi) >
-      new Date()
+      Number.isNaN(
+        birthDate.getTime()
+      )
     ) {
+      setFieldErrors({
+        tanggal_lahir:
+          'Tanggal lahir tidak valid.',
+      });
+
+      return;
+    }
+
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    if (birthDate > today) {
       setFieldErrors({
         tanggal_lahir:
           'Tanggal lahir tidak boleh melebihi hari ini.',
@@ -869,7 +1032,7 @@ const KtpPage = () => {
 
     formData.append(
       'tanggal_lahir',
-      tanggalLahirApi
+      tanggalLahirIso
     );
 
     formData.append(
@@ -1738,37 +1901,92 @@ const KtpPage = () => {
                         )}
                       </div>
 
+                      {/* =========================================================
+                          TANGGAL LAHIR — Text input + Calendar button
+                      ========================================================= */}
+
                       <div>
                         <label
                           htmlFor="tanggalLahir"
                           className="font-label-md text-on-surface block mb-2"
                         >
-                          Tanggal Lahir (dd/mm/yyyy)
+                          Tanggal Lahir
                         </label>
 
-                        <input
-                          id="tanggalLahir"
-                          type="text"
-                          name="tanggalLahir"
-                          value={
-                            form.tanggalLahir
-                          }
-                          onChange={
-                            handleTanggalLahirChange
-                          }
-                          placeholder="dd/mm/yyyy"
-                          inputMode="numeric"
-                          maxLength={10}
-                          disabled={
-                            loading
-                          }
-                          className={`w-full h-12 px-4 rounded-xl bg-surface border focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none ${
-                            fieldErrors.tanggal_lahir
-                              ? 'border-red-400'
-                              : 'border-outline-variant/40'
-                          }`}
-                          required
-                        />
+                        <div className="relative">
+
+                          <input
+                            id="tanggalLahir"
+                            type="text"
+                            name="tanggalLahir"
+                            inputMode="numeric"
+                            value={
+                              form.tanggalLahir
+                            }
+                            onChange={
+                              handleTanggalLahirChange
+                            }
+                            placeholder="dd/mm/yyyy"
+                            maxLength={10}
+                            disabled={
+                              loading
+                            }
+                            className={`w-full h-12 pl-4 pr-12 rounded-xl bg-surface border focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none ${
+                              fieldErrors.tanggal_lahir
+                                ? 'border-red-400'
+                                : 'border-outline-variant/40'
+                            }`}
+                            required
+                          />
+
+                          <button
+                            type="button"
+                            onClick={
+                              openDatePicker
+                            }
+                            disabled={
+                              loading
+                            }
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full hover:bg-primary/10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
+                            aria-label="Buka kalender"
+                          >
+
+                            <span className="material-symbols-outlined">
+                              calendar_month
+                            </span>
+
+                          </button>
+
+                          {/* Hidden native date input — only for picker */}
+
+                          <input
+                            ref={
+                              datePickerRef
+                            }
+                            type="date"
+                            tabIndex={-1}
+                            aria-hidden="true"
+                            value={
+                              displayToIso(
+                                form.tanggalLahir
+                              ) || ''
+                            }
+                            onChange={
+                              handleDatePickerChange
+                            }
+                            max={
+                              getTodayIso()
+                            }
+                            className="absolute opacity-0 pointer-events-none"
+                            style={{
+                              width: 0,
+                              height: 0,
+                              padding: 0,
+                              border: 0,
+                            }}
+                          />
+
+                        </div>
 
                         {fieldErrors.tanggal_lahir && (
                           <p className="text-xs text-red-600 mt-1.5">
@@ -1777,6 +1995,10 @@ const KtpPage = () => {
                             }
                           </p>
                         )}
+
+                        <p className="text-xs text-on-surface-variant mt-1.5">
+                          Ketik tanggal atau klik ikon kalender untuk memilih.
+                        </p>
                       </div>
                     </div>
 
@@ -2129,4 +2351,3 @@ const KtpPage = () => {
 };
 
 export default KtpPage;
-

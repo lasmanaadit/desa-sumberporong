@@ -2219,66 +2219,79 @@ const HeroTableRow = ({
 
 
       {/* ====================================================================
-          AKSI
-      ==================================================================== */}
+    AKSI
+==================================================================== */}
 
-      <td className="px-6 py-4 text-right align-top">
+<td className="px-6 py-4 text-right align-top">
 
-        <div className="flex justify-end gap-3">
+<div className="flex justify-end gap-2">
 
-          {/* ================================================================
-              EDIT
-          ================================================================ */}
+  {/* ================================================================
+      EDIT — Tombol Hijau
+  ================================================================ */}
 
-          <button
-            type="button"
-            onClick={() =>
-              onEdit(
-                hero
-              )
-            }
-            className="text-primary transition hover:underline"
-          >
-            Edit
-          </button>
+  <button
+    type="button"
+    onClick={() =>
+      onEdit(
+        hero
+      )
+    }
+    className="inline-flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700 active:bg-green-800"
+  >
+
+    <span className="material-symbols-outlined text-base">
+      edit
+    </span>
+
+    Edit
+
+  </button>
 
 
-          {/* ================================================================
-              HAPUS
-              ---------------------------------------------------------------
-              Welcome tidak boleh dihapus.
-          ================================================================ */}
+  {/* ================================================================
+      HAPUS — Tombol Hijau (Welcome tidak boleh dihapus)
+  ================================================================ */}
 
-          {Number(
-            hero?.urutan
-          ) !== 1 && (
+  {Number(
+    hero?.urutan
+  ) !== 1 && (
 
-            <button
-              type="button"
-              onClick={() =>
-                onDelete(
-                  hero.id
-                )
-              }
-              disabled={
-                deletingId ===
-                hero.id
-              }
-              className="text-error transition hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-            >
+    <button
+      type="button"
+      onClick={() =>
+        onDelete(
+          hero.id
+        )
+      }
+      disabled={
+        deletingId ===
+        hero.id
+      }
+      className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-green-700 active:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+    >
 
-              {deletingId ===
-              hero.id
-                ? 'Menghapus...'
-                : 'Hapus'}
+      <span className="material-symbols-outlined text-base">
 
-            </button>
+        {deletingId ===
+        hero.id
+          ? 'progress_activity'
+          : 'delete'}
 
-          )}
+      </span>
 
-        </div>
+      {deletingId ===
+      hero.id
+        ? 'Menghapus...'
+        : 'Hapus'}
 
-      </td>
+    </button>
+
+  )}
+
+</div>
+
+</td>
 
     </tr>
 

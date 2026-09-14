@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, {
+  useRef,
+  useState,
+} from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import TataCara from '../../components/dashboard/TataCaraSku';
@@ -66,8 +69,119 @@ const FILE_RULES = {
   },
 };
 
+/*
+|--------------------------------------------------------------------------
+| HELPER: Tanggal hari ini (YYYY-MM-DD)
+|--------------------------------------------------------------------------
+*/
+
+const getTodayIso = () => {
+  const today = new Date();
+
+  const year = today.getFullYear();
+
+  const month = String(
+    today.getMonth() + 1
+  ).padStart(2, '0');
+
+  const day = String(
+    today.getDate()
+  ).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+/*
+|--------------------------------------------------------------------------
+| HELPER: dd/mm/yyyy → YYYY-MM-DD
+|--------------------------------------------------------------------------
+*/
+
+const displayToIso = (display) => {
+  if (!display) {
+    return '';
+  }
+
+  const digits = String(
+    display
+  ).replace(/\D/g, '');
+
+  if (digits.length !== 8) {
+    return '';
+  }
+
+  const day = Number(
+    digits.slice(0, 2)
+  );
+
+  const month = Number(
+    digits.slice(2, 4)
+  );
+
+  const year = Number(
+    digits.slice(4, 8)
+  );
+
+  if (!day || !month || !year) {
+    return '';
+  }
+
+  const date = new Date(
+    year,
+    month - 1,
+    day
+  );
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return '';
+  }
+
+  return `${year}-${String(
+    month
+  ).padStart(2, '0')}-${String(
+    day
+  ).padStart(2, '0')}`;
+};
+
+/*
+|--------------------------------------------------------------------------
+| HELPER: YYYY-MM-DD → dd/mm/yyyy
+|--------------------------------------------------------------------------
+*/
+
+const isoToDisplay = (iso) => {
+  if (!iso) {
+    return '';
+  }
+
+  const [
+    year,
+    month,
+    day,
+  ] = String(iso).split('-');
+
+  if (!year || !month || !day) {
+    return '';
+  }
+
+  return `${day}/${month}/${year}`;
+};
+
 const SkuPage = () => {
   const navigate = useNavigate();
+
+  /*
+  |--------------------------------------------------------------------------
+  | DATE PICKER REF
+  |--------------------------------------------------------------------------
+  */
+
+  const datePickerRef =
+    useRef(null);
 
   const [form, setForm] =
     useState(INITIAL_FORM);
@@ -154,131 +268,101 @@ const SkuPage = () => {
 
   /*
   |--------------------------------------------------------------------------
-  | Tanggal Lahir
+  | TANGGAL LAHIR — Text input handler
   |--------------------------------------------------------------------------
   |
-  | UI:
-  | dd/mm/yyyy
-  |
-  | API:
-  | yyyy-mm-dd
+  | Strip semua non-digit, rebuild dengan slash.
+  | Backspace jadi normal.
   |
   */
 
-  const handleTanggalLahirChange =
-    (event) => {
-      let value =
-        event.target.value
-          .replace(
-            /[^0-9/]/g,
-            ''
-          )
-          .slice(0, 10);
-
-      if (
-        value.length === 2 &&
-        !value.includes('/')
-      ) {
-        value += '/';
-      }
-
-      if (
-        value.length === 5 &&
-        !value.endsWith('/')
-      ) {
-        value += '/';
-      }
-
-      setForm((prev) => ({
-        ...prev,
-        tanggalLahir:
-          value,
-      }));
-
-      clearMessages();
-      clearFieldError(
-        'tanggal_lahir'
-      );
-    };
-
-  const convertDateToApiFormat = (
-    value
+  const handleTanggalLahirChange = (
+    event
   ) => {
-    if (
-      !value ||
-      value.length !== 10
-    ) {
-      return null;
+    const raw = event.target.value
+      .replace(/\D/g, '')
+      .slice(0, 8);
+
+    let formatted = '';
+
+    if (raw.length <= 2) {
+      formatted = raw;
+    } else if (raw.length <= 4) {
+      formatted =
+        raw.slice(0, 2) +
+        '/' +
+        raw.slice(2);
+    } else {
+      formatted =
+        raw.slice(0, 2) +
+        '/' +
+        raw.slice(2, 4) +
+        '/' +
+        raw.slice(4);
     }
 
-    const parts =
-      value.split('/');
+    setForm((prev) => ({
+      ...prev,
+      tanggalLahir: formatted,
+    }));
 
-    if (
-      parts.length !== 3
-    ) {
-      return null;
-    }
-
-    const [
-      day,
-      month,
-      year,
-    ] = parts.map(Number);
-
-    if (
-      !day ||
-      !month ||
-      !year
-    ) {
-      return null;
-    }
-
-    if (
-      String(year).length !== 4
-    ) {
-      return null;
-    }
-
-    const date = new Date(
-      year,
-      month - 1,
-      day
+    clearMessages();
+    clearFieldError(
+      'tanggal_lahir'
     );
+  };
 
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
-      return null;
+  /*
+  |--------------------------------------------------------------------------
+  | TANGGAL LAHIR — Native date picker handler
+  |--------------------------------------------------------------------------
+  */
+
+  const handleDatePickerChange = (
+    event
+  ) => {
+    const iso = event.target.value;
+
+    setForm((prev) => ({
+      ...prev,
+      tanggalLahir:
+        isoToDisplay(iso),
+    }));
+
+    clearMessages();
+    clearFieldError(
+      'tanggal_lahir'
+    );
+  };
+
+  /*
+  |--------------------------------------------------------------------------
+  | TANGGAL LAHIR — Buka native date picker
+  |--------------------------------------------------------------------------
+  */
+
+  const openDatePicker = () => {
+    const el =
+      datePickerRef.current;
+
+    if (!el) {
+      return;
     }
 
     if (
-      date.getFullYear() !==
-        year ||
-      date.getMonth() !==
-        month - 1 ||
-      date.getDate() !==
-        day
+      typeof el.showPicker ===
+      'function'
     ) {
-      return null;
+      try {
+        el.showPicker();
+
+        return;
+      } catch (e) {
+        // fallback
+      }
     }
 
-    return [
-      String(year).padStart(
-        4,
-        '0'
-      ),
-      String(month).padStart(
-        2,
-        '0'
-      ),
-      String(day).padStart(
-        2,
-        '0'
-      ),
-    ].join('-');
+    el.click();
   };
 
   /*
@@ -448,7 +532,7 @@ const SkuPage = () => {
     }
 
     const tanggalLahirApi =
-      convertDateToApiFormat(
+      displayToIso(
         form.tanggalLahir
       );
 
@@ -1247,32 +1331,90 @@ const SkuPage = () => {
                         )}
                       </div>
 
+                      {/* =========================================================
+                          TANGGAL LAHIR — Text input + Calendar button
+                      ========================================================= */}
+
                       <div>
-                        <label className="font-label-md text-on-surface block mb-2">
+                        <label
+                          htmlFor="tanggalLahir"
+                          className="font-label-md text-on-surface block mb-2"
+                        >
                           Tanggal Lahir
-                          (dd/mm/yyyy)
                         </label>
 
-                        <input
-                          type="text"
-                          name="tanggalLahir"
-                          value={
-                            form.tanggalLahir
-                          }
-                          onChange={
-                            handleTanggalLahirChange
-                          }
-                          placeholder="dd/mm/yyyy"
-                          inputMode="numeric"
-                          maxLength={10}
-                          disabled={
-                            loading
-                          }
-                          className={inputClass(
-                            'tanggal_lahir'
-                          )}
-                          required
-                        />
+                        <div className="relative">
+
+                          <input
+                            id="tanggalLahir"
+                            type="text"
+                            name="tanggalLahir"
+                            inputMode="numeric"
+                            value={
+                              form.tanggalLahir
+                            }
+                            onChange={
+                              handleTanggalLahirChange
+                            }
+                            placeholder="dd/mm/yyyy"
+                            maxLength={10}
+                            disabled={
+                              loading
+                            }
+                            className={`${inputClass(
+                              'tanggal_lahir'
+                            )} pr-12`}
+                            required
+                          />
+
+                          <button
+                            type="button"
+                            onClick={
+                              openDatePicker
+                            }
+                            disabled={
+                              loading
+                            }
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full hover:bg-primary/10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors disabled:opacity-50"
+                            aria-label="Buka kalender"
+                          >
+
+                            <span className="material-symbols-outlined">
+                              calendar_month
+                            </span>
+
+                          </button>
+
+                          {/* Hidden native date input — only for picker */}
+
+                          <input
+                            ref={
+                              datePickerRef
+                            }
+                            type="date"
+                            tabIndex={-1}
+                            aria-hidden="true"
+                            value={
+                              displayToIso(
+                                form.tanggalLahir
+                              ) || ''
+                            }
+                            onChange={
+                              handleDatePickerChange
+                            }
+                            max={
+                              getTodayIso()
+                            }
+                            className="absolute opacity-0 pointer-events-none"
+                            style={{
+                              width: 0,
+                              height: 0,
+                              padding: 0,
+                              border: 0,
+                            }}
+                          />
+
+                        </div>
 
                         {fieldErrors.tanggal_lahir && (
                           <p className="text-xs text-red-600 mt-1.5">
@@ -1281,6 +1423,10 @@ const SkuPage = () => {
                             }
                           </p>
                         )}
+
+                        <p className="text-xs text-on-surface-variant mt-1.5">
+                          Ketik tanggal atau klik ikon kalender untuk memilih.
+                        </p>
                       </div>
                     </div>
 
